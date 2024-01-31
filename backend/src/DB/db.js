@@ -1,8 +1,6 @@
 const { MongoClient } = require("mongodb");
 
-const mongo_uri =
-  process.env.MONGO_URI ||
-  "mongodb+srv://FirstTestUser:miRujJ2iiKGVPdZs@firstcluster.vyfrhcb.mongodb.net/?retryWrites=true&w=majority";
+const mongo_uri = process.env.MONGO_URI;
 const dbName = "wingMate_db";
 
 const client = new MongoClient(mongo_uri);
@@ -28,6 +26,7 @@ const connectDB = async () => {
     _db = null;
     client.close();
     console.log("Error connecting db --> ", error);
+    throw error;
   }
 };
 

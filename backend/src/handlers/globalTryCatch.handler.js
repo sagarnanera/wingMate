@@ -16,6 +16,7 @@ const tryCatchHandler = async (ctx, next) => {
   try {
     await next();
   } catch (error) {
+    console.log("here in global try-catch");
     ErrorHandler(error, ctx);
   }
 };

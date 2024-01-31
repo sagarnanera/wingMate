@@ -9,34 +9,45 @@ class customError extends Error {
 }
 
 //  ErrorHandlers
-const notFoundHandler = async (ctx, next) => {
+const notFoundHandler = (ctx, next) => {
   ctx.status = 404;
   ctx.body = {
     success: false,
     message: "Not found, Check the URL properly !!!"
   };
 
-  // await next();
   return;
 };
 
-const invalidJsonHandler = async (err, ctx, next) => {
-  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-    ctx.status = 400;
-    ctx.body = { success: false, message: "Invalid JSON payload" };
-    return;
+const invalidJsonHandler = async (ctx, next) => {
+  try {
+    await next();
+  } catch (err) {
+    if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+      ctx.status = 400;
+      ctx.body = { success: false, message: "Invalid JSON payload" };
+      return;
+    }
+    throw err;
   }
-
-  await next(err);
 };
 
 // global error handler
 const ErrorHandler = (err, ctx) => {
+  err.expose = true;
+
   if (err instanceof customError) {
     console.log("custom error", err);
 
     ctx.status = err.statusCode;
     ctx.body = { success: false, message: err.message };
+    return;
+  }
+
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    console.log("invalid json error", err);
+    ctx.status = 400;
+    ctx.body = { success: false, message: "Invalid JSON payload" };
     return;
   }
 
@@ -49,6 +60,7 @@ const ErrorHandler = (err, ctx) => {
   const errStatus = err.statusCode || 500;
   const errMsg = err.message || "Something went wrong";
 
+  console.log("caught in globalErrorHandler :", err);
   ctx.status = errStatus;
   ctx.body = {
     success: false,
