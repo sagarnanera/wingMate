@@ -27,10 +27,6 @@ exports.loginController = async (ctx) => {
   const isMatch = await compareHash(password, user.password);
 
   if (!isMatch) {
-    // return res
-    //   .status(400)
-    //   .json({ success: false, message: "Invalid Credentials !!!" });
-
     ctx.status = 400;
     ctx.body = { success: false, message: "Invalid Credentials !!!" };
     return;
@@ -50,12 +46,6 @@ exports.loginController = async (ctx) => {
     ...userData
   } = user;
 
-  // return res.status(200).cookie("token", token, CookieOptions).json({
-  //   success: true,
-  //   message: "logged in successfully",
-  //   user: userData
-  // });
-
   ctx.cookies.set("token", token, cookieOptions);
 
   ctx.status = 200;
@@ -69,7 +59,7 @@ exports.loginController = async (ctx) => {
 
 exports.registerController = async (ctx) => {
   const User = ctx.db.collection("users");
-  const { email, password: userPass } = ctx.request.body;
+  const { email, password: userPass, ...restUserData } = ctx.request.body;
 
   const isExist = await User.findOne({ email });
 
@@ -85,7 +75,8 @@ exports.registerController = async (ctx) => {
   const res = await User.insertOne({
     _id: _id,
     email: email,
-    password: hash
+    password: hash,
+    ...restUserData
   });
 
   console.log("user :", res);
@@ -96,7 +87,7 @@ exports.registerController = async (ctx) => {
 
   const token = genJWTToken(payload);
 
-  const user = { _id, email };
+  const user = { _id, email, ...restUserData };
 
   ctx.cookies.set("token", token, cookieOptions);
 
