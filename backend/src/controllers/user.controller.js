@@ -57,7 +57,7 @@ exports.verifyUser = async (ctx) => {
       isVerified: true,
       verifiedBy: id._id
     },
-    { returnDocument: "After" }
+    { returnDocument: "after" }
   );
   //   .select("userName isVerified verifiedBy email isEmailVerified ");
 
@@ -93,7 +93,7 @@ exports.updateUseRole = async (ctx) => {
     {
       $set: { role }
     },
-    { returnDocument: "After", projection: { password: 0 } }
+    { returnDocument: "after", projection: { password: 0 } }
   );
   // .select("role isVerified verifiedBy email isEmailVerified ");
 

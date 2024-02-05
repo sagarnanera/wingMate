@@ -1,26 +1,46 @@
-const { PROPERTY_TYPE } = require("../utils/constants");
+const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.addWing = async (ctx) => {
   const WingCollection = ctx.db.collection("wings");
+  const UserCollection = ctx.db.collection("users");
 
   const { societyId } = ctx.request.user;
 
-  const wingData = ctx.request.body;
+  const { wingAdminId, ...restWingData } = ctx.request.body;
+
+  if (wingAdminId && wingAdminId !== "") {
+    const wingAdmin = await UserCollection.findOneAndUpdate(
+      { _id: wingAdminId, societyId },
+      { $set: { role: ROLES.WING_ADMIN } }
+    );
+
+    console.log("wingAdmin", wingAdmin);
+
+    if (!wingAdmin) {
+      ctx.status = 400;
+      ctx.body = {
+        success: false,
+        message: "Wing admin must be a member of society!!!"
+      };
+      return;
+    }
+  }
 
   const _id = generateUUID();
 
   const wing = await WingCollection.insertOne({
     _id,
     societyId,
-    ...wingData
+    wingAdminId,
+    ...restWingData
   });
 
   ctx.status = 200;
   ctx.body = {
     success: true,
     message: "Wing details added successfully!!!",
-    wing: { _id: wing.insertedId, wingData }
+    wing: { _id: wing.insertedId, ...restWingData }
   };
   return;
 };
@@ -28,7 +48,8 @@ exports.addWing = async (ctx) => {
 exports.getWingDetails = async (ctx) => {
   const WingCollection = ctx.db.collection("wings");
   const { wingId } = ctx.params;
-  const wing = await WingCollection.findOne({ _id: wingId });
+  const { societyId } = ctx.request.user;
+  const wing = await WingCollection.findOne({ _id: wingId, societyId });
 
   if (!wing) {
     ctx.status = 404;
@@ -62,17 +83,39 @@ exports.getWings = async (ctx) => {
 };
 
 exports.updateWingDetails = async (ctx) => {
-  const { wingId } = ctx.request.user;
-  const wingData = ctx.request.body;
+  const WingCollection = ctx.db.collection("wings");
+  const UserCollection = ctx.db.collection("users");
 
-  console.log("wing before update:", wingData);
+  const { societyId } = ctx.request.user;
+  const { wingId } = ctx.params;
+  const { wingAdminId, ...restWingData } = ctx.request.body;
 
-  const wing = await UserCollection.findOneAndUpdate(
-    { _id: wingId },
+  if (wingAdminId && wingAdminId !== "") {
+    const wingAdmin = await UserCollection.findOneAndUpdate(
+      { _id: wingAdminId, societyId },
+      { $set: { role: ROLES.WING_ADMIN } }
+    );
+
+    console.log("wingAdmin", wingAdmin);
+
+    if (!wingAdmin) {
+      ctx.status = 400;
+      ctx.body = {
+        success: false,
+        message: "Wing admin must be a member of society!!!"
+      };
+      return;
+    }
+  }
+
+  console.log("wing before update:", restWingData);
+
+  const wing = await WingCollection.findOneAndUpdate(
+    { _id: wingId, societyId },
     {
-      $set: wingData
+      $set: restWingData
     },
-    { returnDocument: "after", projection: { password: 0 } }
+    { returnDocument: "after" }
   );
 
   console.log("wing after update:", wing);
@@ -94,9 +137,13 @@ exports.updateWingDetails = async (ctx) => {
 
 exports.deleteWingDetails = async (ctx) => {
   const WingCollection = ctx.db.collection("wings");
-  const { wingId } = ctx.request.user;
+  const { societyId } = ctx.request.user;
+  const { wingId } = ctx.params;
 
-  const wing = await WingCollection.findOneAndDelete({ _id: wingId });
+  const wing = await WingCollection.findOneAndDelete({
+    _id: wingId,
+    societyId
+  });
   if (!wing) {
     ctx.status = 404;
     ctx.body = { success: false, message: "Wing details not found." };

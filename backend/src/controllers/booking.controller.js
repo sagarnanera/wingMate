@@ -1,38 +1,127 @@
-const { PROPERTY_TYPE } = require("../utils/constants");
+const { PROPERTY_TYPE, ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.createBooking = async (ctx) => {
   const BookingCollection = ctx.db.collection("bookings");
+  const PropertyCollection = ctx.db.collection("properties");
 
-  const { userId } = ctx.request.user;
+  const { _id: userId, societyId } = ctx.request.user;
+  const {
+    propertyIds,
+    startDate,
+    endDate,
+    paymentId = "xxxxxxx",
+    reason
+  } = ctx.request.body;
 
-  const bookingData = ctx.request.body;
+  const requestedDateRange = {
+    startDate: new Date(startDate),
+    endDate: new Date(endDate)
+  };
+
+  const isBooked = await BookingCollection.findOne({
+    societyId,
+    propertyIds: { $in: propertyIds },
+    $or: [
+      {
+        startDate: { $lt: requestedDateRange.endDate },
+        endDate: { $gt: requestedDateRange.startDate }
+      },
+      {
+        startDate: {
+          $gte: requestedDateRange.startDate,
+          $lt: requestedDateRange.endDate
+        }
+      },
+      {
+        endDate: {
+          $gt: requestedDateRange.startDate,
+          $lte: requestedDateRange.endDate
+        }
+      }
+    ]
+  });
+
+  if (isBooked) {
+    ctx.status = 400;
+    ctx.body = {
+      success: false,
+      message: "Failed to book requested properties, already booked!!!"
+    };
+    return;
+  }
+
+  const aggregationPipeline = [
+    {
+      $match: {
+        _id: { $in: propertyIds }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        pricePerDay: 1
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalAmount: {
+          $sum: {
+            $multiply: [
+              {
+                $ceil: {
+                  $divide: [
+                    {
+                      $subtract: [
+                        requestedDateRange.endDate,
+                        requestedDateRange.startDate
+                      ]
+                    },
+                    24 * 60 * 60 * 1000 // Convert milliseconds to days
+                  ]
+                }
+              },
+              "$pricePerDay"
+            ]
+          }
+        }
+      }
+    }
+  ];
 
   const _id = generateUUID();
+  const totalPayableAmount = await PropertyCollection.aggregate(
+    aggregationPipeline
+  ).toArray();
 
-  // {
-  //     _id,
-  //      userId,
-  //      propertiesId[],
-  //      paymentId,
-  //      eventId,
-  //      startDate,
-  //      endDate,
-  //      timestamp
-  // }
+  console.log("here in create booking", isBooked, _id, totalPayableAmount);
+
+  // TODO: payment gateway : save payment details to payment collection
 
   const booking = await BookingCollection.insertOne({
     _id,
     userId,
-    ...bookingData
+    propertyIds,
+    reason,
+    paymentId,
+    ...requestedDateRange,
+    createdOn: new Date()
   });
 
   ctx.status = 200;
-
   ctx.body = {
     success: true,
     message: "Booked properties successfully!!!",
-    booking
+    bookingDetails: {
+      _id,
+      userId,
+      propertyIds,
+      reason,
+      paymentId,
+      ...requestedDateRange,
+      createdOn: new Date()
+    }
   };
   return;
 };
@@ -42,7 +131,13 @@ exports.getBooking = async (ctx) => {
 
   const { bookingId } = ctx.params;
 
-  const booking = await BookingCollection.find({ _id: bookingId });
+  const booking = await BookingCollection.findOne({ _id: bookingId });
+
+  if (!booking) {
+    ctx.status = 404;
+    ctx.body = { success: false, message: "Booking details not found." };
+    return;
+  }
 
   ctx.status = 200;
   ctx.body = {
@@ -56,9 +151,13 @@ exports.getBooking = async (ctx) => {
 exports.getBookings = async (ctx) => {
   const BookingCollection = ctx.db.collection("bookings");
 
-  const { wingId, societyId, propertyType } = ctx.request.user;
+  const { wingId, societyId, _id } = ctx.request.user;
+  const { propertyType } = ctx.query;
 
-  const query = {};
+  const query = { userId: _id };
+
+  // if (role !== ROLES.SECRETORY) {
+  // }
 
   if (propertyType === PROPERTY_TYPE.SOCIETY) {
     query[propertyType] = societyId;
@@ -66,7 +165,7 @@ exports.getBookings = async (ctx) => {
     query[propertyType] = wingId;
   }
 
-  const bookings = await BookingCollection.find(query);
+  const bookings = await BookingCollection.find(query).toArray();
 
   ctx.status = 200;
   ctx.body = {
@@ -77,102 +176,87 @@ exports.getBookings = async (ctx) => {
   return;
 };
 
-exports.verifyBooking = async (ctx) => {
-  //   const id = req.user;
-  //   const { error } = userIdObjectValidator.validate(req.body);
-  //   if (error) {
-  //     return res
-  //       .status(400)
-  //       .json({ success: false, message: error.details[0].message });
-  //   }
+exports.approveBooking = async (ctx) => {
+  const BookingCollection = ctx.db.collection("bookings");
+
   const { _id } = ctx.request.body;
+  const { _id: userId } = ctx.request.user;
 
-  const UserCollection = ctx.db.collection("users");
-
-  const user = await UserCollection.findOneAndUpdate(
-    _id,
+  const booking = await BookingCollection.findOneAndUpdate(
+    { _id },
     {
-      isVerified: true,
-      verifiedBy: id._id
+      isApproved: true,
+      verifiedBy: userId
     },
-    { returnDocument: "After" }
+    { returnDocument: "after" }
   );
-  //   .select("userName isVerified verifiedBy email isEmailVerified ");
 
-  if (!user) {
+  if (!booking) {
     ctx.status = 404;
-    ctx.body = { success: false, message: "User not found." };
+    ctx.body = { success: false, message: "Booking details not found." };
     return;
   }
 
   ctx.status = 200;
   ctx.body = {
     success: true,
-    message: "User verified successfully!!!",
-    user
+    message: "Booking approved successfully!!!",
+    booking
   };
   return;
 };
 
 exports.updateBooking = async (ctx) => {
-  //   const { error } = userValidator.validate(req.body);
-  //   if (error) {
-  //     return res
-  //       .status(400)
-  //       .json({ success: false, message: error.details[0].message });
-  //   }
-  const { _id } = ctx.request.user;
-  const { email, password, ...restUserData } = ctx.request.body;
+  const BookingCollection = ctx.db.collection("bookings");
 
-  const UserCollection = ctx.db.collection("users");
+  const { _id: userId } = ctx.request.user;
+  const { _id, ...restBookingData } = ctx.request.body;
 
-  let dataToUpdate = {};
+  console.log("booking before update:", restBookingData);
 
-  if (password) {
-    dataToUpdate["password"] = await hashPassword(password);
-  }
-
-  if (email) {
-    dataToUpdate["email"] = email;
-  }
-
-  dataToUpdate = { ...dataToUpdate, ...restUserData };
-  console.log("user in update:", dataToUpdate);
-
-  const user = await UserCollection.findOneAndUpdate(
-    { _id },
+  const booking = await BookingCollection.findOneAndUpdate(
+    { _id, userId },
     {
-      $set: {
-        ...dataToUpdate
-      }
+      $set: restBookingData
     },
-    { returnDocument: "after", projection: { password: 0 } }
+    { returnDocument: "after" }
   );
-  // .select("userName email isEmailVerified");
-  console.log("user in update:", user);
 
-  if (!user) {
+  console.log("booking after update:", booking);
+
+  if (!booking) {
     ctx.status = 404;
-    ctx.body = { success: false, message: "User not found." };
+    ctx.body = { success: false, message: "Booking details not found." };
     return;
   }
 
   ctx.status = 200;
-  ctx.body = { success: true, message: "User updated successfully!!!", user };
+  ctx.body = {
+    success: true,
+    message: "Booking details updated successfully!!!",
+    booking
+  };
   return;
 };
 
 exports.deleteBooking = async (ctx) => {
-  const UserCollection = ctx.db.collection("users");
-  const { _id } = ctx.request.user;
+  const BookingCollection = ctx.db.collection("bookings");
+  const { bookingId: _id } = ctx.params;
+  const { _id: userId } = ctx.request.user;
 
-  const user = await UserCollection.findOneAndDelete({ _id });
-  if (!user) {
+  console.log("booking in delete:", _id, userId);
+  const booking = await BookingCollection.findOneAndDelete({ _id, userId });
+
+  if (!booking) {
     ctx.status = 404;
-    ctx.body = { success: false, message: "User not found." };
+    ctx.body = { success: false, message: "Booking details not found." };
+    return;
   }
 
   ctx.status = 200;
-  ctx.body = { success: true, message: "User deleted successfully." };
+  ctx.body = {
+    success: true,
+    message: "Booking details deleted successfully."
+  };
   return;
 };

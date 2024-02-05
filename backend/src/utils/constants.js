@@ -2,7 +2,7 @@ const ROLES = {
   SECRETORY: "secretory",
   WING_ADMIN: "wing admin",
   HOUSE_OWNER: "house owner",
-  STD_USER: "standard user"
+  RESIDENT: "resident"
 };
 
 const AllRoles = [
@@ -11,6 +11,12 @@ const AllRoles = [
   ROLES.HOUSE_OWNER,
   ROLES.STD_USER
 ];
+
+const EVENT_STATUS = {
+  PENDING: "pending approval",
+  APPROVED: "approved",
+  FINISHED: "finished"
+};
 
 const POST_TYPE = {
   TEXT: "text",
@@ -34,5 +40,6 @@ module.exports = {
   POST_TYPE,
   AUDIENCE_TYPE,
   PROPERTY_TYPE,
-  HOST
+  HOST,
+  EVENT_STATUS
 };

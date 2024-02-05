@@ -1,11 +1,13 @@
 const { genJWTToken } = require("../services/jwt.service");
 const { compareHash, hashPassword } = require("../services/password.service");
+const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 const cookieOptions = {
   expires: new Date(
     Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
   ),
+  // domain: "localhost",
   secure: false,
   httpOnly: true,
   sameSite: "none"
@@ -71,7 +73,7 @@ exports.registerController = async (ctx) => {
   const isExist = await UserCollection.findOne({ email });
 
   if (isExist) {
-    ctx.status = 402;
+    ctx.status = 400;
     ctx.body = { success: false, message: "User already exist!!" };
     return;
   }
@@ -93,6 +95,7 @@ exports.registerController = async (ctx) => {
     password: hash,
     societyId,
     wingId,
+    role: ROLES.RESIDENT,
     ...restUserData
   });
 

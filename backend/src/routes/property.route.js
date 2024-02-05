@@ -8,7 +8,7 @@ const {
 } = require("../controllers/property.controller");
 const authenticate = require("../middlewares/auth.middleware");
 const { AllRoles, ROLES } = require("../utils/constants");
-const router = new KoaRouter({ prefix: "/api/v1/wing" });
+const router = new KoaRouter({ prefix: "/api/v1/property" });
 
 router.post("/", authenticate([ROLES.SECRETORY]), addProperty);
 router.get("/", authenticate(AllRoles), getProperties);

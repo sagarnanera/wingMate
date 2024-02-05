@@ -10,10 +10,10 @@ const authenticate = require("../middlewares/auth.middleware");
 const { AllRoles, ROLES } = require("../utils/constants");
 const router = new KoaRouter({ prefix: "/api/v1/booking" });
 
-router.post("/", createBooking);
+router.post("/", authenticate(AllRoles), createBooking);
 router.get("/", authenticate(AllRoles), getBookings);
-router.get("/:societyId", authenticate(AllRoles), getBooking);
-router.put("/:societyId", authenticate(AllRoles), updateBooking);
-router.delete("/:societyId", authenticate(AllRoles), deleteBooking);
+router.get("/:bookingId", authenticate(AllRoles), getBooking);
+router.put("/:bookingId", authenticate(AllRoles), updateBooking);
+router.delete("/:bookingId", authenticate(AllRoles), deleteBooking);
 
 module.exports = router;

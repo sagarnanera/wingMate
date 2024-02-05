@@ -87,9 +87,12 @@ exports.getSocietyDetails = async (ctx) => {
 
 exports.addResidents = async (ctx) => {
   const SocietyCollection = ctx.db.collection("societies");
-  const { societyId } = ctx.request.user;
+  const { societyId, _id } = ctx.request.user;
   const { residents } = ctx.request.body;
-  const society = await SocietyCollection.findOne({ _id: societyId });
+  const society = await SocietyCollection.findOne({
+    _id: societyId,
+    secretoryId: _id
+  });
 
   if (!society) {
     ctx.status = 404;

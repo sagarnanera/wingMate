@@ -12,11 +12,7 @@ const router = new KoaRouter({ prefix: "/api/v1/wing" });
 
 router.post("/", authenticate([ROLES.SECRETORY]), addWing);
 router.get("/", authenticate(AllRoles), getWings);
-router.get(
-  "/:wingId",
-  authenticate([ROLES.SECRETORY, ROLES.WING_ADMIN]),
-  getWingDetails
-);
+router.get("/:wingId", authenticate(AllRoles), getWingDetails);
 router.put(
   "/:wingId",
   authenticate([ROLES.SECRETORY, ROLES.WING_ADMIN]),

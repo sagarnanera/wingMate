@@ -16,6 +16,7 @@ const userRouter = require("./routes/user.route");
 const societyRouter = require("./routes/society.route");
 const wingRouter = require("./routes/wing.route");
 const propertyRouter = require("./routes/property.route");
+const bookingRouter = require("./routes/booking.route");
 
 // logger
 app.use(async (ctx, next) => {
@@ -27,13 +28,14 @@ app.use(async (ctx, next) => {
 // middlewares
 app.use(invalidJsonHandler);
 app.use(bodyParser());
-
 app.use(tryCatchHandler);
+
 app.use(authRouter.routes()); // .use(authRouter.allowedMethods());
 app.use(userRouter.routes());
 app.use(societyRouter.routes());
 app.use(wingRouter.routes());
 app.use(propertyRouter.routes());
+app.use(bookingRouter.routes());
 
 app.use(notFoundHandler);
 app.on("error", ErrorHandler);
