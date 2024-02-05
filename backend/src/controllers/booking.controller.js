@@ -1,9 +1,10 @@
-const { PROPERTY_TYPE, ROLES } = require("../utils/constants");
+const { calculatePropertyRent } = require("../DB/property.db");
+const { PROPERTY_TYPE } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.createBooking = async (ctx) => {
   const BookingCollection = ctx.db.collection("bookings");
-  const PropertyCollection = ctx.db.collection("properties");
+  // const PropertyCollection = ctx.db.collection("properties");
 
   const { _id: userId, societyId } = ctx.request.user;
   const {
@@ -11,17 +12,22 @@ exports.createBooking = async (ctx) => {
     startDate,
     endDate,
     paymentId = "xxxxxxx",
-    reason
+    reason,
+    createdOn = new Date()
   } = ctx.request.body;
 
   const requestedDateRange = {
-    startDate: new Date(startDate),
-    endDate: new Date(endDate)
+    startDate: new Date(new Date(startDate).setHours(0, 0, 0)),
+    endDate: new Date(new Date(endDate).setHours(0, 0, 0))
   };
 
   const isBooked = await BookingCollection.findOne({
     societyId,
-    propertyIds: { $in: propertyIds },
+    propertyIds: {
+      // $elemMatch: {
+      $in: propertyIds
+      // }
+    },
     $or: [
       {
         startDate: { $lt: requestedDateRange.endDate },
@@ -30,84 +36,119 @@ exports.createBooking = async (ctx) => {
       {
         startDate: {
           $gte: requestedDateRange.startDate,
-          $lt: requestedDateRange.endDate
+          $lte: requestedDateRange.endDate
         }
       },
       {
         endDate: {
-          $gt: requestedDateRange.startDate,
+          $gte: requestedDateRange.startDate,
           $lte: requestedDateRange.endDate
         }
       }
     ]
   });
 
+  console.log("isbooked", isBooked);
+
   if (isBooked) {
     ctx.status = 400;
     ctx.body = {
       success: false,
-      message: "Failed to book requested properties, already booked!!!"
+      message:
+        "Requested properties are already booked, Please chose other available dates!!!"
     };
     return;
   }
 
-  const aggregationPipeline = [
-    {
-      $match: {
-        _id: { $in: propertyIds }
-      }
-    },
-    {
-      $project: {
-        _id: 1,
-        pricePerDay: 1
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        totalAmount: {
-          $sum: {
-            $multiply: [
-              {
-                $ceil: {
-                  $divide: [
-                    {
-                      $subtract: [
-                        requestedDateRange.endDate,
-                        requestedDateRange.startDate
-                      ]
-                    },
-                    24 * 60 * 60 * 1000 // Convert milliseconds to days
-                  ]
-                }
-              },
-              "$pricePerDay"
-            ]
-          }
-        }
-      }
-    }
-  ];
+  // // TODO: payment gateway : save payment details to payment collection
+
+  // const booking = await BookingCollection.insertOne({
+  //   _id,
+  //   userId,
+  //   propertyIds,
+  //   reason,
+  //   paymentId,
+  //   ...requestedDateRange,
+  //   createdOn: new Date()
+  // });
+
+  // const result = await BookingCollection.findOneAndUpdate(
+  //   {
+  //     societyId,
+  //     propertyIds: { $in: propertyIds },
+  //     $or: [
+  //       {
+  //         startDate: { $lt: requestedDateRange.endDate },
+  //         endDate: { $gt: requestedDateRange.startDate }
+  //       },
+  //       {
+  //         startDate: {
+  //           $gte: requestedDateRange.startDate,
+  //           $lte: requestedDateRange.endDate
+  //         }
+  //       },
+  //       {
+  //         endDate: {
+  //           $gte: requestedDateRange.startDate,
+  //           $lte: requestedDateRange.endDate
+  //         }
+  //       }
+  //     ]
+  //   },
+  //   {
+  //     $setOnInsert: {
+  //       _id,
+  //       userId,
+  //       propertyIds,
+  //       reason,
+  //       paymentId,
+  //       ...requestedDateRange,
+  //       timestamp: new Date()
+  //     }
+  //   },
+  //   {
+  //     upsert: true,
+  //     returnDocument: "after" // Return the updated document
+  //   }
+  // );
+
+  // console.log("booking", result);
+
+  // if (result._id !== _id) {
+  //   ctx.status = 400;
+  //   ctx.body = {
+  //     success: false,
+  //     message: "Requested properties are already booked."
+  //   };
+  //   return;
+  // }
+
+  const [{ totalAmount }] = await calculatePropertyRent(
+    ctx.db,
+    propertyIds,
+    requestedDateRange
+  );
 
   const _id = generateUUID();
-  const totalPayableAmount = await PropertyCollection.aggregate(
-    aggregationPipeline
-  ).toArray();
-
-  console.log("here in create booking", isBooked, _id, totalPayableAmount);
-
-  // TODO: payment gateway : save payment details to payment collection
-
   const booking = await BookingCollection.insertOne({
     _id,
     userId,
+    societyId,
     propertyIds,
     reason,
-    paymentId,
+    totalRent: totalAmount,
     ...requestedDateRange,
-    createdOn: new Date()
+    createdOn
   });
+
+  if (!booking) {
+    ctx.status = 400;
+    ctx.body = {
+      success: false,
+      message:
+        "Unable to book the requested properties, Please try again later!!!"
+    };
+  }
 
   ctx.status = 200;
   ctx.body = {
@@ -116,11 +157,12 @@ exports.createBooking = async (ctx) => {
     bookingDetails: {
       _id,
       userId,
+      societyId,
       propertyIds,
       reason,
-      paymentId,
+      totalRent: totalAmount,
       ...requestedDateRange,
-      createdOn: new Date()
+      createdOn
     }
   };
   return;
