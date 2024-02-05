@@ -15,6 +15,9 @@ build
 # documentation
 Documentation
 
+# temporary files
+temp.js
+
 # uploads
 uploads
 

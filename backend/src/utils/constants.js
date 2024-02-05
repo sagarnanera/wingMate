@@ -24,6 +24,8 @@ const AUDIENCE_TYPE = {
   WING: "wing"
 };
 
+const PROPERTY_TYPE = AUDIENCE_TYPE;
+
 const HOST = process.env.HOST;
 
 module.exports = {
@@ -31,5 +33,6 @@ module.exports = {
   AllRoles,
   POST_TYPE,
   AUDIENCE_TYPE,
+  PROPERTY_TYPE,
   HOST
 };

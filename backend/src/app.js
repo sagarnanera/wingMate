@@ -13,6 +13,9 @@ const app = new koa();
 // routes
 const authRouter = require("./routes/auth.route");
 const userRouter = require("./routes/user.route");
+const societyRouter = require("./routes/society.route");
+const wingRouter = require("./routes/wing.route");
+const propertyRouter = require("./routes/property.route");
 
 // logger
 app.use(async (ctx, next) => {
@@ -26,9 +29,11 @@ app.use(invalidJsonHandler);
 app.use(bodyParser());
 
 app.use(tryCatchHandler);
-app.use(authRouter.routes());
-// .use(authRouter.allowedMethods());
+app.use(authRouter.routes()); // .use(authRouter.allowedMethods());
 app.use(userRouter.routes());
+app.use(societyRouter.routes());
+app.use(wingRouter.routes());
+app.use(propertyRouter.routes());
 
 app.use(notFoundHandler);
 app.on("error", ErrorHandler);

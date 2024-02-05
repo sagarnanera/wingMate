@@ -6,7 +6,6 @@ const cookieOptions = {
   expires: new Date(
     Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
   ),
-  // secure: true,
   secure: false,
   httpOnly: true,
   sameSite: "none"
@@ -58,10 +57,18 @@ exports.loginController = async (ctx) => {
 };
 
 exports.registerController = async (ctx) => {
-  const User = ctx.db.collection("users");
-  const { email, password: userPass, ...restUserData } = ctx.request.body;
+  const UserCollection = ctx.db.collection("users");
+  const SocietyCollection = ctx.db.collection("societies");
+  const {
+    email,
+    password: userPass,
+    wingId,
+    ...restUserData
+  } = ctx.request.body;
 
-  const isExist = await User.findOne({ email });
+  const { societyId } = ctx.query;
+
+  const isExist = await UserCollection.findOne({ email });
 
   if (isExist) {
     ctx.status = 402;
@@ -69,13 +76,23 @@ exports.registerController = async (ctx) => {
     return;
   }
 
+  const isSocietyExist = await SocietyCollection.findOne({ _id: societyId });
+
+  if (!isSocietyExist) {
+    ctx.status = 400;
+    ctx.body = { success: false, message: "Society does'nt exist!!" };
+    return;
+  }
+
   const hash = await hashPassword(userPass);
   const _id = generateUUID();
 
-  const res = await User.insertOne({
+  const res = await UserCollection.insertOne({
     _id: _id,
     email: email,
     password: hash,
+    societyId,
+    wingId,
     ...restUserData
   });
 

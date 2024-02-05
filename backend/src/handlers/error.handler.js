@@ -1,4 +1,5 @@
 const { JsonWebTokenError, TokenExpiredError } = require("jsonwebtoken");
+const { MongoServerError } = require("mongodb");
 
 // custom error
 class customError extends Error {
@@ -51,6 +52,30 @@ const ErrorHandler = (err, ctx) => {
     return;
   }
 
+  if (err instanceof MongoServerError) {
+    if (err.code === 121) {
+      ctx.status = 400;
+      ctx.body = {
+        success: false,
+        message: "mongodb validation error",
+        fields: err.errInfo.details.schemaRulesNotSatisfied
+      };
+      // return;
+    }
+
+    if (err.code === 11000) {
+      ctx.status = 400;
+      ctx.body = {
+        success: false,
+        message: `${Object.keys(err.keyPattern)[0]} already exist!!!`
+        // err: Object.keys(err.keyPattern)[0]
+      };
+      // return;
+    }
+
+    return;
+  }
+
   if (err instanceof JsonWebTokenError || err instanceof TokenExpiredError) {
     ctx.status = 401;
     ctx.body = { success: false, message: "Invalid or expired token..." };
@@ -60,7 +85,7 @@ const ErrorHandler = (err, ctx) => {
   const errStatus = err.statusCode || 500;
   const errMsg = err.message || "Something went wrong";
 
-  console.log("caught in globalErrorHandler :", err);
+  console.log("caught in globalErrorHandler :", err, err.code);
   ctx.status = errStatus;
   ctx.body = {
     success: false,
