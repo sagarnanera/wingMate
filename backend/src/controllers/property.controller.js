@@ -1,35 +1,33 @@
-const { PROPERTY_TYPE } = require("../utils/constants");
-const generateUUID = require("../utils/generateUUID");
+const { deletePostData } = require("../DB/post.db");
+const {
+  insertProperty,
+  findProperties,
+  findProperty,
+  updatePropertyData,
+  deletePropertyData
+} = require("../DB/property.db");
 
 exports.addProperty = async (ctx) => {
-  const PropertyCollection = ctx.db.collection("properties");
   const { name, wingId, area, location } = ctx.request.body;
 
   const { societyId } = ctx.request.user;
 
-  const _id = generateUUID();
-
-  //   {
-  //     _id,
-  //      name,
-  //      wingId / societyId
-  //      area,
-  // }
-
-  // const entityId = {};
-
-  // if (type === PROPERTY_TYPE.WING) {
-  //   entityId["wingId"] = wingId;
-  // }
-
-  const property = await PropertyCollection.insertOne({
-    _id,
+  const property = await insertProperty(ctx.db, {
     name,
     wingId,
     societyId,
     area,
     location
   });
+
+  if (!property) {
+    ctx.status = 400;
+    ctx.body = {
+      success: true,
+      message: "Unable to add property, try again later!!!"
+    };
+    return;
+  }
 
   ctx.status = 200;
   ctx.body = {
@@ -41,8 +39,6 @@ exports.addProperty = async (ctx) => {
 };
 
 exports.getProperties = async (ctx) => {
-  const PropertyCollection = ctx.db.collection("properties");
-
   const { societyId } = ctx.request.user;
 
   const { wingId } = ctx.query;
@@ -55,7 +51,7 @@ exports.getProperties = async (ctx) => {
     searchQuery["societyId"] = societyId;
   }
 
-  const properties = await PropertyCollection.find(searchQuery).toArray();
+  const properties = await findProperties(ctx.db, searchQuery);
 
   ctx.status = 200;
   ctx.body = {
@@ -67,12 +63,11 @@ exports.getProperties = async (ctx) => {
 };
 
 exports.getProperty = async (ctx) => {
-  const PropertyCollection = ctx.db.collection("properties");
-
   const { societyId } = ctx.request.user;
   const { propertyId } = ctx.params;
 
-  const property = await PropertyCollection.findOne({
+  // const property = await PropertyCollection.findOne({
+  const property = await findProperty(ctx.db, {
     _id: propertyId,
     societyId
   });
@@ -93,20 +88,17 @@ exports.getProperty = async (ctx) => {
 };
 
 exports.updateProperty = async (ctx) => {
-  const PropertyCollection = ctx.db.collection("properties");
-
   // const { _id } = ctx.request.user;
   const propertyData = ctx.request.body;
   const { societyId } = ctx.request.user;
   const { propertyId } = ctx.params;
   console.log("propertyData before update:", propertyData);
 
-  const property = await PropertyCollection.findOneAndUpdate(
+  // const property = await PropertyCollection.findOneAndUpdate(
+  const property = await updatePropertyData(
+    ctx.db,
     { _id: propertyId, societyId },
-    {
-      $set: propertyData
-    },
-    { returnDocument: "after" }
+    propertyData
   );
 
   console.log("property after update:", property);
@@ -127,18 +119,22 @@ exports.updateProperty = async (ctx) => {
 };
 
 exports.deleteProperty = async (ctx) => {
-  const PropertyCollection = ctx.db.collection("properties");
+  // const PropertyCollection = ctx.db.collection("properties");
 
-  const { societyId } = req.request.user;
-
-  const property = await PropertyCollection.findOneAndDelete({
+  const { societyId } = ctx.request.user;
+  const { propertyId: _id } = ctx.params;
+  // const property = await PropertyCollection.findOneAndDelete({
+  const property = await deletePropertyData(ctx.db, {
     _id,
     societyId
   });
 
+  console.log("property", property);
+
   if (!property) {
     ctx.status = 404;
     ctx.body = { success: false, message: "Property details not found." };
+    return;
   }
 
   ctx.status = 200;

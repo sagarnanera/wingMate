@@ -1,56 +1,43 @@
+const {
+  isBooked,
+  getUnbookedProperties,
+  unbookedProperties
+} = require("../DB/booking.db");
+const { getEvent } = require("../DB/event.db");
 const { calculatePropertyRent } = require("../DB/property.db");
-const { PROPERTY_TYPE } = require("../utils/constants");
+const { PROPERTY_TYPE, BOOKING_TYPE, ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.createBooking = async (ctx) => {
   const BookingCollection = ctx.db.collection("bookings");
-  // const PropertyCollection = ctx.db.collection("properties");
 
   const { _id: userId, societyId } = ctx.request.user;
   const {
     propertyIds,
     startDate,
     endDate,
-    paymentId = "xxxxxxx",
     reason,
-    createdOn = new Date()
+    createdOn = new Date(),
+    bookingType,
+    eventId
   } = ctx.request.body;
 
+  // checking availability for the requested properties
   const requestedDateRange = {
     startDate: new Date(new Date(startDate).setHours(0, 0, 0)),
     endDate: new Date(new Date(endDate).setHours(0, 0, 0))
   };
 
-  const isBooked = await BookingCollection.findOne({
+  const booked = await isBooked(
+    ctx.db,
     societyId,
-    propertyIds: {
-      // $elemMatch: {
-      $in: propertyIds
-      // }
-    },
-    $or: [
-      {
-        startDate: { $lt: requestedDateRange.endDate },
-        endDate: { $gt: requestedDateRange.startDate }
-      },
-      {
-        startDate: {
-          $gte: requestedDateRange.startDate,
-          $lte: requestedDateRange.endDate
-        }
-      },
-      {
-        endDate: {
-          $gte: requestedDateRange.startDate,
-          $lte: requestedDateRange.endDate
-        }
-      }
-    ]
-  });
+    propertyIds,
+    requestedDateRange
+  );
 
-  console.log("isbooked", isBooked);
+  console.log("isBooked", booked);
 
-  if (isBooked) {
+  if (booked) {
     ctx.status = 400;
     ctx.body = {
       success: false,
@@ -60,69 +47,7 @@ exports.createBooking = async (ctx) => {
     return;
   }
 
-  // // TODO: payment gateway : save payment details to payment collection
-
-  // const booking = await BookingCollection.insertOne({
-  //   _id,
-  //   userId,
-  //   propertyIds,
-  //   reason,
-  //   paymentId,
-  //   ...requestedDateRange,
-  //   createdOn: new Date()
-  // });
-
-  // const result = await BookingCollection.findOneAndUpdate(
-  //   {
-  //     societyId,
-  //     propertyIds: { $in: propertyIds },
-  //     $or: [
-  //       {
-  //         startDate: { $lt: requestedDateRange.endDate },
-  //         endDate: { $gt: requestedDateRange.startDate }
-  //       },
-  //       {
-  //         startDate: {
-  //           $gte: requestedDateRange.startDate,
-  //           $lte: requestedDateRange.endDate
-  //         }
-  //       },
-  //       {
-  //         endDate: {
-  //           $gte: requestedDateRange.startDate,
-  //           $lte: requestedDateRange.endDate
-  //         }
-  //       }
-  //     ]
-  //   },
-  //   {
-  //     $setOnInsert: {
-  //       _id,
-  //       userId,
-  //       propertyIds,
-  //       reason,
-  //       paymentId,
-  //       ...requestedDateRange,
-  //       timestamp: new Date()
-  //     }
-  //   },
-  //   {
-  //     upsert: true,
-  //     returnDocument: "after" // Return the updated document
-  //   }
-  // );
-
-  // console.log("booking", result);
-
-  // if (result._id !== _id) {
-  //   ctx.status = 400;
-  //   ctx.body = {
-  //     success: false,
-  //     message: "Requested properties are already booked."
-  //   };
-  //   return;
-  // }
-
+  // actual booking starts from here
   const [{ totalAmount }] = await calculatePropertyRent(
     ctx.db,
     propertyIds,
@@ -130,16 +55,38 @@ exports.createBooking = async (ctx) => {
   );
 
   const _id = generateUUID();
-  const booking = await BookingCollection.insertOne({
+  const bookingData = {
     _id,
     userId,
     societyId,
     propertyIds,
     reason,
+    bookingType: BOOKING_TYPE.PERSONAL,
     totalRent: totalAmount,
     ...requestedDateRange,
     createdOn
-  });
+  };
+
+  if (bookingType === BOOKING_TYPE.EVENT) {
+    const isValid = await getEvent(ctx.db, {
+      _id: eventId,
+      startDate: requestedDateRange.startDate,
+      endDate: requestedDateRange.endDate
+    });
+    if (!isValid) {
+      ctx.status = 400;
+      ctx.body = {
+        success: false,
+        message: "Event not found!!!"
+      };
+      return;
+    }
+
+    bookingData["eventId"] = eventId;
+    bookingData["bookingType"] = BOOKING_TYPE.EVENT;
+  }
+
+  const booking = await BookingCollection.insertOne(bookingData);
 
   if (!booking) {
     ctx.status = 400;
@@ -154,16 +101,7 @@ exports.createBooking = async (ctx) => {
   ctx.body = {
     success: true,
     message: "Booked properties successfully!!!",
-    bookingDetails: {
-      _id,
-      userId,
-      societyId,
-      propertyIds,
-      reason,
-      totalRent: totalAmount,
-      ...requestedDateRange,
-      createdOn
-    }
+    bookingDetails: bookingData
   };
   return;
 };
@@ -171,9 +109,10 @@ exports.createBooking = async (ctx) => {
 exports.getBooking = async (ctx) => {
   const BookingCollection = ctx.db.collection("bookings");
 
+  const { _id: userId } = ctx.request.user;
   const { bookingId } = ctx.params;
 
-  const booking = await BookingCollection.findOne({ _id: bookingId });
+  const booking = await BookingCollection.findOne({ _id: bookingId, userId });
 
   if (!booking) {
     ctx.status = 404;
@@ -193,19 +132,28 @@ exports.getBooking = async (ctx) => {
 exports.getBookings = async (ctx) => {
   const BookingCollection = ctx.db.collection("bookings");
 
-  const { wingId, societyId, _id } = ctx.request.user;
-  const { propertyType } = ctx.query;
+  const { wingId, societyId, _id, role } = ctx.request.user;
+  const { propertyType, bookingType } = ctx.query;
 
-  const query = { userId: _id };
+  const query = { userId: _id, societyId };
+
+  // if (role !== ROLES.SECRETORY) {
+  //   query["userId"] = _id;
+  // }
 
   // if (role !== ROLES.SECRETORY) {
   // }
 
-  if (propertyType === PROPERTY_TYPE.SOCIETY) {
-    query[propertyType] = societyId;
-  } else {
-    query[propertyType] = wingId;
-  }
+  // if (propertyType && propertyType === PROPERTY_TYPE.WING) {
+  //   query["propertyType"] = wingId;
+  // }
+
+  // if (bookingType && bookingType === BOOKING_TYPE.EVENT) {
+  //   query["bookingType"] = BOOKING_TYPE.EVENT;
+  // }
+  // if (bookingType && bookingType === BOOKING_TYPE.PERSONAL) {
+  //   query["bookingType"] = BOOKING_TYPE.PERSONAL;
+  // }
 
   const bookings = await BookingCollection.find(query).toArray();
 
@@ -214,36 +162,6 @@ exports.getBookings = async (ctx) => {
     success: true,
     message: "Bookings fetched successfully!!!",
     bookings
-  };
-  return;
-};
-
-exports.approveBooking = async (ctx) => {
-  const BookingCollection = ctx.db.collection("bookings");
-
-  const { _id } = ctx.request.body;
-  const { _id: userId } = ctx.request.user;
-
-  const booking = await BookingCollection.findOneAndUpdate(
-    { _id },
-    {
-      isApproved: true,
-      verifiedBy: userId
-    },
-    { returnDocument: "after" }
-  );
-
-  if (!booking) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Booking details not found." };
-    return;
-  }
-
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Booking approved successfully!!!",
-    booking
   };
   return;
 };
@@ -299,6 +217,62 @@ exports.deleteBooking = async (ctx) => {
   ctx.body = {
     success: true,
     message: "Booking details deleted successfully."
+  };
+  return;
+};
+
+exports.getUnbookedProperties = async (ctx) => {
+  const { societyId } = ctx.request.user;
+
+  const { startDate, endDate } = ctx.query;
+
+  const requestedDateRange = {
+    startDate: new Date(new Date(startDate).setHours(0, 0, 0)),
+    endDate: new Date(new Date(endDate).setHours(0, 0, 0))
+  };
+  const availableProperties = await unbookedProperties(
+    ctx.db,
+    societyId,
+    requestedDateRange
+  );
+
+  ctx.status = 200;
+  ctx.body = {
+    success: true,
+    message:
+      "Available properties for the given time frame fetched successfully!!!",
+    availableProperties
+  };
+  return;
+};
+
+// only for personal booking
+exports.changeBookingStatus = async (ctx) => {
+  const BookingCollection = ctx.db.collection("bookings");
+
+  const { _id } = ctx.request.body;
+  const { _id: userId } = ctx.request.user;
+
+  const booking = await BookingCollection.findOneAndUpdate(
+    { _id },
+    {
+      isApproved: true,
+      verifiedBy: userId
+    },
+    { returnDocument: "after" }
+  );
+
+  if (!booking) {
+    ctx.status = 404;
+    ctx.body = { success: false, message: "Booking details not found." };
+    return;
+  }
+
+  ctx.status = 200;
+  ctx.body = {
+    success: true,
+    message: "Booking approved successfully!!!",
+    booking
   };
   return;
 };

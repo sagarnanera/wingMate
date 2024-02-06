@@ -1,78 +1,66 @@
 const {
-  PROPERTY_TYPE,
-  AUDIENCE_TYPE,
-  POST_TYPE
+  insertPost,
+  findPost,
+  findPosts,
+  updatePostData,
+  deletePostData
+} = require("../DB/post.db");
+const {
+  POST_TYPE,
+  POST_CONTENT_TYPE,
+  FEED_TYPE
 } = require("../utils/constants");
-const generateUUID = require("../utils/generateUUID");
 
-exports.cretePost = async (ctx) => {
-  const PostCollection = ctx.db.collection("posts");
-  const { title, postType, visibility, text, mediaURLs } = ctx.request.body;
+exports.createPost = async (ctx) => {
+  const { title, text, media, contentType, feed } = ctx.request.body;
 
   const { _id: userId, societyId, wingId } = ctx.request.user;
 
-  const _id = generateUUID();
+  const postData = {
+    userId,
+    societyId,
+    title,
+    postType: POST_TYPE.NORMAL_POST,
+    contentType
+  };
 
-  //   {
-  //     _id,
-  //      userId,
-  //      title,
-  //      postType,
-  //      visibility,
-  //      text/mediaUrls[],
-  //      totalLikes,
-  //      totalComments,
-  //      recentComments,
-  //      totalViews
-  // }
+  if (feed === FEED_TYPE.WING) {
+    postData["wingId"] = wingId;
+  }
 
-  const postData = {};
-
-  if (postType !== POST_TYPE.TEXT && mediaURLs && mediaURLs.length > 0) {
-    postData["media"] = mediaURLs;
+  if (contentType !== POST_CONTENT_TYPE.TEXT && media && media.length > 0) {
+    postData["media"] = media;
   } else {
     postData["text"] = text;
   }
 
-  if (visibility === AUDIENCE_TYPE.WING) {
-    postData["visibility"] = AUDIENCE_TYPE.WING;
-    postData["wingId"] = wingId;
-  }
-
-  await PostCollection.insertOne({
-    _id,
-    userId,
-    title,
-    visibility,
-    postType,
-    ...postData
-  });
+  const post = await insertPost(ctx.db, postData);
 
   ctx.status = 200;
   ctx.body = {
     success: true,
     message: "Post added successfully!!!",
-    post: { _id, userId, title, visibility, postType, ...postData }
+    post
   };
   return;
 };
 
 exports.getPosts = async (ctx) => {
-  const PostCollection = ctx.db.collection("posts");
-
-  const { societyId } = ctx.request.user;
-
-  const { wingId } = ctx.query;
-
+  const { societyId, wingId } = ctx.request.user;
+  const { feed, userId } = ctx.query;
   const searchQuery = {};
 
-  if (wingId && wingId !== "") {
-    searchQuery["wingId"] = wingId;
-  } else {
-    searchQuery["societyId"] = societyId;
+  if (userId && userId !== "") {
+    searchQuery["userId"] = userId;
   }
 
-  const posts = await PostCollection.find(searchQuery).toArray();
+  if (feed === FEED_TYPE.WING) {
+    searchQuery["wingId"] = wingId;
+  }
+
+  searchQuery["societyId"] = societyId;
+
+  const posts = await findPosts(ctx.db, searchQuery);
 
   ctx.status = 200;
   ctx.body = {
@@ -84,12 +72,10 @@ exports.getPosts = async (ctx) => {
 };
 
 exports.getPost = async (ctx) => {
-  const PostCollection = ctx.db.collection("posts");
-
   const { societyId } = ctx.request.user;
   const { postId } = ctx.params;
 
-  const post = await PostCollection.findOne({
+  const post = await findPost(ctx.db, {
     _id: postId,
     societyId
   });
@@ -110,20 +96,39 @@ exports.getPost = async (ctx) => {
 };
 
 exports.updatePost = async (ctx) => {
-  const PostCollection = ctx.db.collection("posts");
-
-  // const { _id } = ctx.request.user;
-  const postData = ctx.request.body;
-  const { societyId } = ctx.request.user;
+  const { feed, ...postData } = ctx.request.body;
+  const { societyId, _id, wingId } = ctx.request.user;
   const { postId } = ctx.params;
+
   console.log("postData before update:", postData);
 
-  const post = await PostCollection.findOneAndUpdate(
-    { _id: postId, societyId },
-    {
-      $set: postData
-    },
-    { returnDocument: "after" }
+  if (feed) {
+    if (feed === FEED_TYPE.WING) {
+      postData["wingId"] = wingId;
+    }
+
+    if (feed === FEED_TYPE.SOCIETY) {
+      postData["wingId"] = null;
+    }
+  }
+
+  if (
+    postData.contentType !== POST_CONTENT_TYPE.TEXT &&
+    postData.media &&
+    postData.media.length > 0
+  ) {
+    postData["media"] = postData.media;
+    postData["text"] = null;
+  } else {
+    postData["text"] = postData.text;
+    postData["media"] = null;
+  }
+
+  // const post = await PostCollection.findOneAndUpdate(
+  const post = await updatePostData(
+    ctx.db,
+    { _id: postId, userId: _id, societyId },
+    postData
   );
 
   console.log("post after update:", post);
@@ -144,24 +149,25 @@ exports.updatePost = async (ctx) => {
 };
 
 exports.deletePost = async (ctx) => {
-  const PostCollection = ctx.db.collection("posts");
+  const { societyId, _id: userId } = ctx.request.user;
+  const { postId: _id } = ctx.params;
 
-  const { societyId } = req.request.user;
-
-  const post = await PostCollection.findOneAndDelete({
+  const post = await deletePostData(ctx.db, {
     _id,
+    userId,
     societyId
   });
 
   if (!post) {
     ctx.status = 404;
     ctx.body = { success: false, message: "Post details not found." };
+    return;
   }
 
   ctx.status = 200;
   ctx.body = {
     success: true,
-    message: "Property details deleted successfully."
+    message: "Post details deleted successfully."
   };
   return;
 };

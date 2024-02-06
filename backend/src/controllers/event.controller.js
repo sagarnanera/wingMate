@@ -1,94 +1,49 @@
+const {
+  updateEvent,
+  insertEvent,
+  deleteEvent,
+  findEvent,
+  findEvents,
+  updateEventData
+} = require("../DB/event.db");
 const { EVENT_STATUS } = require("../utils/constants");
-const generateUUID = require("../utils/generateUUID");
 
 exports.createEvent = async (ctx) => {
-  const EventCollection = ctx.db.collection("events");
-  const BookingCollection = ctx.db.collection("bookings");
-
-  const { name, fees, startDate, endDate, propertyIds } = ctx.request.body;
+  const {
+    name,
+    fees,
+    startDate,
+    endDate,
+    createdOn = new Date()
+  } = ctx.request.body;
   const { societyId, _id: userId } = ctx.request.user;
-  const bookingId = generateUUID();
-  const _id = generateUUID();
-
-  //   {
-  //     _id,
-  //      userId,
-  //      name,
-  //      paymentId, // TODO : remove
-  //      fees,
-  //      bookingId, // TODO : remove
-  //      status,
-  //      societyId,
-  //      startDate,
-  //      endDate
-  // }
 
   const requestedDateRange = {
     startDate: new Date(startDate),
     endDate: new Date(endDate)
   };
 
-  const isBooked = await BookingCollection.findOne(
-    {
-      societyId,
-      propertyIds: { $in: propertyIds },
-      $or: [
-        {
-          startDate: { $lt: requestedDateRange.endDate },
-          endDate: { $gt: requestedDateRange.startDate }
-        },
-        {
-          startDate: {
-            $gte: requestedDateRange.startDate,
-            $lte: requestedDateRange.endDate
-          }
-        },
-        {
-          endDate: {
-            $gte: requestedDateRange.startDate,
-            $lte: requestedDateRange.endDate
-          }
-        }
-      ]
-    }
-    // {
-    //   $set: {
-    //     _id: bookingId,
-    //     userId,
-    //     propertyIds,
-    //     eventId: _id,
-    //     ...requestedDateRange,
-    //     timestamp: new Date()
-    //   }
-    // },
-    // {
-    //   upsert: true,
-    //   returnDocument: "after"
-    // }
-  );
-
-  if (isBooked) {
-    ctx.status = 400;
-    ctx.body ==
-      {
-        success: false,
-        message:
-          "Requested properties are already booked in given time frame!!!"
-      };
-    return;
-  }
-
-  const event = await EventCollection.insertOne({
-    _id,
+  const eventData = {
     userId,
     societyId,
     name,
     fees,
     status: EVENT_STATUS.PENDING,
-    startDate,
-    endDate,
-    createdOn: new Date()
-  });
+    ...requestedDateRange,
+    createdOn
+  };
+
+  // await EventCollection.insertOne(eventData);
+  const event = await insertEvent(ctx.db, eventData);
+
+  if (!event) {
+    ctx.status = 400;
+    ctx.body = {
+      success: false,
+      message: "Unable to add event, try again later!!!"
+    };
+    return;
+  }
 
   ctx.status = 200;
   ctx.body = {
@@ -100,21 +55,10 @@ exports.createEvent = async (ctx) => {
 };
 
 exports.getEvents = async (ctx) => {
-  const EventCollection = ctx.db.collection("events");
-
   const { societyId } = ctx.request.user;
 
-  const { wingId } = ctx.query;
-
-  const searchQuery = {};
-
-  if (wingId && wingId !== "") {
-    searchQuery["wingId"] = wingId;
-  } else {
-    searchQuery["societyId"] = societyId;
-  }
-
-  const events = await EventCollection.find(searchQuery).toArray();
+  // const events = await EventCollection.find(searchQuery).toArray();
+  const events = await findEvents(ctx.db, { societyId });
 
   ctx.status = 200;
   ctx.body = {
@@ -126,12 +70,11 @@ exports.getEvents = async (ctx) => {
 };
 
 exports.getEvent = async (ctx) => {
-  const EventCollection = ctx.db.collection("events");
-
   const { societyId } = ctx.request.user;
   const { eventId } = ctx.params;
 
-  const event = await EventCollection.findOne({
+  // const event = await EventCollection.findOne({
+  const event = await findEvent(ctx.db, {
     _id: eventId,
     societyId
   });
@@ -152,20 +95,17 @@ exports.getEvent = async (ctx) => {
 };
 
 exports.updateEvent = async (ctx) => {
-  const EventCollection = ctx.db.collection("events");
-
   // const { _id } = ctx.request.user;
   const eventData = ctx.request.body;
   const { societyId } = ctx.request.user;
   const { eventId } = ctx.params;
   console.log("eventData before update:", eventData);
 
-  const event = await EventCollection.findOneAndUpdate(
+  // const event = await EventCollection.findOneAndUpdate(
+  const event = await updateEventData(
+    ctx.db,
     { _id: eventId, societyId },
-    {
-      $set: eventData
-    },
-    { returnDocument: "after" }
+    eventData
   );
 
   console.log("event after update:", event);
@@ -186,11 +126,10 @@ exports.updateEvent = async (ctx) => {
 };
 
 exports.deleteEvent = async (ctx) => {
-  const EventCollection = ctx.db.collection("events");
+  const { societyId } = ctx.request.user;
 
-  const { societyId } = req.request.user;
-
-  const event = await EventCollection.findOneAndDelete({
+  // const event = await EventCollection.findOneAndDelete({
+  const event = await deleteEvent({
     _id,
     societyId
   });
@@ -204,6 +143,33 @@ exports.deleteEvent = async (ctx) => {
   ctx.body = {
     success: true,
     message: "Event details deleted successfully."
+  };
+  return;
+};
+
+// secretory use only
+exports.changeEventStatus = async (ctx) => {
+  const { status } = ctx.request.body;
+  const { societyId } = ctx.request.user;
+  const { eventId } = ctx.params;
+
+  const event = await updateEventData(
+    ctx.db,
+    { _id: eventId, societyId },
+    { status }
+  );
+
+  if (!event) {
+    ctx.status = 404;
+    ctx.body = { success: false, message: "Event not found." };
+    return;
+  }
+
+  ctx.status = 200;
+  ctx.body = {
+    success: true,
+    message: "Event status changed successfully!!!",
+    event
   };
   return;
 };
