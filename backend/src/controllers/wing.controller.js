@@ -1,18 +1,22 @@
+const { updateUserData } = require("../DB/user.db");
+const { insertWing } = require("../DB/wing.db");
 const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.addWing = async (ctx) => {
-  const WingCollection = ctx.db.collection("wings");
-  const UserCollection = ctx.db.collection("users");
+  // const WingCollection = ctx.db.collection("wings");
+  // const UserCollection = ctx.db.collection("users");
 
   const { societyId } = ctx.request.user;
 
   const { wingAdminId, ...restWingData } = ctx.request.body;
 
   if (wingAdminId && wingAdminId !== "") {
-    const wingAdmin = await UserCollection.findOneAndUpdate(
+    // const wingAdmin = await UserCollection.findOneAndUpdate(
+    const wingAdmin = await updateUserData(
+      ctx.db,
       { _id: wingAdminId, societyId },
-      { $set: { role: ROLES.WING_ADMIN } }
+      { role: ROLES.WING_ADMIN }
     );
 
     console.log("wingAdmin", wingAdmin);
@@ -30,6 +34,7 @@ exports.addWing = async (ctx) => {
   const _id = generateUUID();
 
   const wing = await WingCollection.insertOne({
+    // const wing = await insertWing(ctx.db, {
     _id,
     societyId,
     wingAdminId,

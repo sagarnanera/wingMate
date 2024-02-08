@@ -1,5 +1,6 @@
 const { verifyJWTToken } = require("../services/jwt.service");
 const { customError } = require("../handlers/error.handler");
+const { findUser } = require("../DB/user.db");
 
 const authenticate = (authenticatedRoles) => {
   return async (ctx, next) => {
@@ -13,12 +14,7 @@ const authenticate = (authenticatedRoles) => {
 
     const { _id } = verifyJWTToken(token);
 
-    const UserCollection = ctx.db.collection("users");
-    //   const user = await new User().getUserById(_id);
-
-    const user = await UserCollection.findOne({ _id });
-
-    // console.log("user", user);
+    const user = await findUser(ctx.db, { _id });
 
     if (!user) {
       throw new customError("User not found.", 401);

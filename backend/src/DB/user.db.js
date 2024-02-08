@@ -1,4 +1,3 @@
-const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.insertUser = async (db, userData) => {
@@ -7,34 +6,42 @@ exports.insertUser = async (db, userData) => {
   const _id = generateUUID();
   const user = await UserCollection.insertOne({ _id, ...userData });
 
-  if (user) {
-    return { _id };
-  }
-
-  return null;
+  return { _id, ...userData };
 };
 
-exports.getUser = async (db, searchQuery) => {
+exports.insertUsers = async (db, userData) => {
   const UserCollection = db.collection("users");
 
-  const user = await UserCollection.findOne(searchQuery);
+  await UserCollection.insertMany(userData);
+
+  return userData;
+};
+
+exports.findUser = async (db, searchQuery) => {
+  const UserCollection = db.collection("users");
+
+  const user = await UserCollection.findOne(searchQuery, {
+    projection: { password: 0 }
+  });
 
   console.log(user);
 
   return user;
 };
 
-exports.getUsers = async (db, searchQuery) => {
+exports.findUsers = async (db, searchQuery) => {
   const UserCollection = db.collection("users");
 
-  const users = await UserCollection.find(searchQuery).toArray();
+  const users = await UserCollection.find(searchQuery, {
+    projection: { password: 0 }
+  }).toArray();
 
   console.log(users);
 
   return users;
 };
 
-exports.updateUser = async (db, searchQuery, dataToUpdate) => {
+exports.updateUserData = async (db, searchQuery, dataToUpdate) => {
   const UserCollection = db.collection("users");
 
   const user = await UserCollection.findOneAndUpdate(
@@ -42,13 +49,13 @@ exports.updateUser = async (db, searchQuery, dataToUpdate) => {
     {
       $set: dataToUpdate
     },
-    { returnDocument: "after" }
+    { returnDocument: "after", projection: { password: 0 } }
   );
 
   return user;
 };
 
-exports.deleteUser = async (db, searchQuery) => {
+exports.deleteUserData = async (db, searchQuery) => {
   const UserCollection = db.collection("users");
 
   const user = await UserCollection.findOneAndDelete(searchQuery);

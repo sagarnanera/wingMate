@@ -1,16 +1,15 @@
 const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
-exports.insertWing = async (
-  db,
-  { societyId, wingAdminId, ...restWingData }
-) => {
+exports.insertWing = async (db, wingData) => {
   const WingCollection = db.collection("wings");
   const UserCollection = db.collection("users");
 
+  const { wingId, wingAdminId, ...restWingData } = wingData;
+
   if (wingAdminId && wingAdminId !== "") {
     const wingAdmin = await UserCollection.findOneAndUpdate(
-      { _id: wingAdminId, societyId },
+      { _id: wingAdminId, wingId },
       { $set: { role: ROLES.WING_ADMIN } }
     );
 
@@ -25,7 +24,7 @@ exports.insertWing = async (
 
   const wing = await WingCollection.insertOne({
     _id,
-    societyId,
+    wingId,
     wingAdminId,
     ...restWingData
   });
@@ -33,11 +32,45 @@ exports.insertWing = async (
   if (wing) {
     return {
       _id,
-      societyId,
+      wingId,
       wingAdminId,
       ...restWingData
     };
   }
 
   return null;
+};
+
+exports.findWing = async (db, searchQuery) => {
+  const WingCollection = db.collection("wings");
+
+  const wing = await WingCollection.findOne(searchQuery);
+
+  console.log(wing);
+
+  return wing;
+};
+
+exports.updateWingData = async (db, searchQuery, dataToUpdate) => {
+  const WingCollection = db.collection("wings");
+
+  const wing = await WingCollection.findOneAndUpdate(
+    searchQuery,
+    {
+      $set: dataToUpdate
+    },
+    { returnDocument: "after" }
+  );
+
+  return wing;
+};
+
+exports.deleteWingData = async (db, searchQuery) => {
+  const WingCollection = db.collection("wings");
+
+  const wing = await WingCollection.findOneAndDelete(searchQuery);
+
+  console.log(wing);
+
+  return wing;
 };

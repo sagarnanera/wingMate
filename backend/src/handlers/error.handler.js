@@ -20,6 +20,26 @@ const notFoundHandler = (ctx, next) => {
   return;
 };
 
+const validationErrorHandler = (ctx, err) => {
+  ctx.status = 400;
+  ctx.body = {
+    success: false,
+    message: "validation error!!!",
+    err
+  };
+  return;
+};
+
+// const dbValidationErrorHandler = (ctx, err) => {
+//   ctx.status = 400;
+//   ctx.body = {
+//     success: false,
+//     message: "DB validation error!!!",
+//     err
+//   };
+//   return;
+// };
+
 const invalidJsonHandler = async (ctx, next) => {
   try {
     await next();
@@ -53,30 +73,31 @@ const ErrorHandler = (err, ctx) => {
   }
 
   if (err instanceof MongoServerError) {
+    console.log("MONGO err", err);
+
+    // insert bulk write error handlers
+
     if (err.code === 121) {
       ctx.status = 400;
       ctx.body = {
         success: false,
-        message: "mongodb validation error",
-        fields: err.errInfo.details.schemaRulesNotSatisfied
+        message: "mongodb validation error"
       };
-      // return;
+      return;
     }
 
     if (err.code === 11000) {
       ctx.status = 400;
       ctx.body = {
         success: false,
-        message: `${Object.keys(err.keyPattern)[0]} already exist!!!`
-        // err: Object.keys(err.keyPattern)[0]
+        message: "Email already exist!!!"
       };
-      // return;
+      return;
     }
-
-    return;
   }
 
   if (err instanceof JsonWebTokenError || err instanceof TokenExpiredError) {
+    console.log("JWT err", err);
     ctx.status = 401;
     ctx.body = { success: false, message: "Invalid or expired token..." };
     return;
@@ -85,7 +106,7 @@ const ErrorHandler = (err, ctx) => {
   const errStatus = err.statusCode || 500;
   const errMsg = err.message || "Something went wrong";
 
-  console.log("caught in globalErrorHandler :", err, err.code);
+  console.log("uncaught in globalErrorHandler :", err, err.code);
   ctx.status = errStatus;
   ctx.body = {
     success: false,
@@ -98,5 +119,6 @@ module.exports = {
   customError,
   notFoundHandler,
   ErrorHandler,
-  invalidJsonHandler
+  invalidJsonHandler,
+  validationErrorHandler
 };

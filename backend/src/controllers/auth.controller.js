@@ -1,17 +1,10 @@
-const { genJWTToken } = require("../services/jwt.service");
+const { updateUserData, findUser } = require("../DB/user.db");
+const cookieOptions = require("../config/cookie.config");
+const { customError } = require("../handlers/error.handler");
+const { genJWTToken, verifyJWTToken } = require("../services/jwt.service");
 const { compareHash, hashPassword } = require("../services/password.service");
 const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
-
-const cookieOptions = {
-  expires: new Date(
-    Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
-  ),
-  // domain: "localhost",
-  secure: false,
-  httpOnly: true,
-  sameSite: "none"
-};
 
 exports.loginController = async (ctx) => {
   const User = ctx.db.collection("users");
@@ -59,55 +52,55 @@ exports.loginController = async (ctx) => {
 };
 
 exports.registerController = async (ctx) => {
-  const UserCollection = ctx.db.collection("users");
-  const SocietyCollection = ctx.db.collection("societies");
   const {
-    email,
     password: userPass,
     wingId,
-    ...restUserData
+    name,
+    contact,
+    _id,
+    societyId
   } = ctx.request.body;
 
-  const { societyId } = ctx.query;
+  // const { email, password, wingId, name, contact } = ctx.request.body;
 
-  const isExist = await UserCollection.findOne({ email });
+  const { invitationToken } = ctx.query;
 
-  if (isExist) {
-    ctx.status = 400;
-    ctx.body = { success: false, message: "User already exist!!" };
-    return;
-  }
+  // const { _id, societyId } = verifyJWTToken(invitationToken);
 
-  const isSocietyExist = await SocietyCollection.findOne({ _id: societyId });
-
-  if (!isSocietyExist) {
-    ctx.status = 400;
-    ctx.body = { success: false, message: "Society does'nt exist!!" };
-    return;
-  }
+  console.log(_id, societyId);
 
   const hash = await hashPassword(userPass);
-  const _id = generateUUID();
 
-  const res = await UserCollection.insertOne({
-    _id: _id,
-    email: email,
-    password: hash,
-    societyId,
-    wingId,
-    role: ROLES.RESIDENT,
-    ...restUserData
-  });
+  const user = await updateUserData(
+    ctx.db,
+    { _id, societyId, invitationToken },
+    {
+      invitationToken: null,
+      password: hash,
+      wingId,
+      role: ROLES.RESIDENT,
+      totalPost: 0,
+      name,
+      contact
+    }
+  );
 
-  console.log("user :", res);
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      success: false,
+      message: "User not found or already registered!!!"
+    };
+    return;
+  }
+
+  console.log("user after update :", user);
 
   const payload = {
     _id
   };
 
   const token = genJWTToken(payload);
-
-  const user = { _id, email, ...restUserData };
 
   ctx.cookies.set("token", token, cookieOptions);
 
@@ -125,4 +118,64 @@ exports.registerController = async (ctx) => {
 exports.logoutController = async (ctx) => {
   ctx.cookies.set("token", "", cookieOptions);
   ctx.body = { success: "true", message: "Successfully Logged Out" };
+};
+
+// forgot password
+exports.ForgotPass = async (ctx) => {
+  // const { email } = ctx.request.user;
+
+  const user = ctx.request.user;
+
+  // if (!user) {
+  //   throw new customError("User with this email does not exist.", 404);
+  // }
+
+  const token = generateUUID();
+
+  const resetPasswordToken = token;
+  const resetPasswordExpires = new Date(Date.now() + 3600000);
+
+  await updateUserData(
+    ctx.db,
+    { _id: user._id },
+    {
+      resetPasswordExpires,
+      resetPasswordToken
+    }
+  );
+
+  const resetPassLink = `http://localhost:8080/api/auth/reset-password/${token}`;
+
+  ctx.status = 200;
+  ctx.body = {
+    success: true,
+    message: "Successfully generated reset password link.",
+    resetPassLink
+  };
+  return;
+};
+
+exports.ResetPass = async (ctx) => {
+  const { password } = ctx.request.body;
+
+  const user = ctx.request.user;
+
+  const newHash = await hashPassword(password);
+
+  await updateUserData(
+    ctx.db,
+    { _id: user._id },
+    {
+      password: newHash,
+      resetPasswordExpires: null,
+      resetPasswordToken: null
+    }
+  );
+
+  ctx.status = 200;
+  ctx.body = {
+    success: true,
+    message: "Password reset successful."
+  };
+  return;
 };

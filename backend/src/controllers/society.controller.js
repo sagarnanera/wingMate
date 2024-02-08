@@ -1,54 +1,54 @@
+const { Promise } = require("bluebird");
+const {
+  insertSociety,
+  findSociety,
+  deleteSocietyData,
+  updateSocietyData
+} = require("../DB/society.db");
+const { insertUser, insertUsers } = require("../DB/user.db");
 const { genJWTToken } = require("../services/jwt.service");
 const { hashPassword } = require("../services/password.service");
 const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.societyRegistration = async (ctx) => {
-  const SocietyCollection = ctx.db.collection("societies");
-  const UserCollection = ctx.db.collection("users");
-  const {
-    name,
-    location,
-    area,
-    secretoryEmail,
-    secretoryName,
-    secretoryPassword
-  } = ctx.request.body;
+  const { societyName, location, area, email, name, password, contact } =
+    ctx.request.body;
 
   const _id = generateUUID();
   const secretoryId = generateUUID();
 
-  //   {
-  //       _id,
-  //       name,
-  //       totalWings,
-  //       totalHouses,
-  //       Location,
-  //       totalProperties,
-  //       area,
-  //       secretoryId;
-  //   }
+  const hash = await hashPassword(password);
 
-  const hash = await hashPassword(secretoryPassword);
-
-  const secretory = UserCollection.insertOne({
+  const secretory = insertUser(ctx.db, {
     _id: secretoryId,
-    name: secretoryName,
-    email: secretoryEmail,
+    name,
+    email,
     password: hash,
     societyId: _id,
+    totalPost: 0,
+    contact,
     role: ROLES.SECRETORY
   });
 
-  const society = SocietyCollection.insertOne({
+  const society = insertSociety(ctx.db, {
     _id,
-    secretoryId,
-    name,
+    name: societyName,
     location,
-    area
+    area,
+    secretoryId,
+    totalHouse: 0,
+    totalWings: 0,
+    totalProperties: 0
   });
 
   const promise = await Promise.all([secretory, society]);
+
+  const payload = {
+    _id: secretoryId
+  };
+
+  const token = genJWTToken(payload);
 
   console.log("promise", promise);
 
@@ -56,81 +56,94 @@ exports.societyRegistration = async (ctx) => {
   ctx.body = {
     success: true,
     message: "Society registered successfully!!!",
+    user: { name, email, contact, societyId: _id, _id: secretoryId, token },
     society: {
-      _id: promise[1].insertedId,
-      name,
+      _id,
+      societyName,
       location,
       area,
-      secretoryEmail,
-      secretoryId,
-      secretoryName
+      secretoryId
     }
   };
   return;
 };
 
 exports.getSocietyDetails = async (ctx) => {
-  const SocietyCollection = ctx.db.collection("societies");
-
-  const { societyId } = ctx.request.user;
-
-  const society = await SocietyCollection.findOne({ _id: societyId });
+  const society = ctx.request.society;
 
   ctx.status = 200;
   ctx.body = {
     success: true,
     message: "Society details fetched successfully!!!",
-    society
+    society: society
   };
   return;
 };
 
 exports.addResidents = async (ctx) => {
-  const SocietyCollection = ctx.db.collection("societies");
-  const { societyId, _id } = ctx.request.user;
+  const { societyId } = ctx.request.user;
   const { residents } = ctx.request.body;
-  const society = await SocietyCollection.findOne({
-    _id: societyId,
-    secretoryId: _id
-  });
 
-  if (!society) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Society details not found." };
-    return;
-  }
+  // const society = await SocietyCollection.findOne({
+  // const society = await findSociety({
+  //   _id: societyId,
+  //   secretoryId: _id
+  // });
+
+  // if (!society) {
+  //   ctx.status = 404;
+  //   ctx.body = { success: false, message: "Society details not found." };
+  //   return;
+  // }
 
   //TODO: send invitation mail to residents with register link - send jwt with societyId + userEmail
 
   const invitationLinks = [];
+  const userData = [];
+
   residents.forEach((email) => {
-    // const invitationToken = genJWTToken({ societyId, email: email });
+    console.log("user in bulk list", email);
+
+    const _id = generateUUID();
+    const invitationToken = genJWTToken({
+      societyId,
+      _id: _id
+    });
+
+    userData.push({
+      email,
+      _id,
+      societyId,
+      invitationToken: invitationToken
+    });
+
     invitationLinks.push(
-      `http://localhost:8080/api/v1/auth/register?societyId=${societyId}&residentEmail=${email}`
+      `http://localhost:8080/api/v1/auth/register?invitationToken=${invitationToken}`
     );
   });
+
+  await insertUsers(ctx.db, userData);
 
   ctx.status = 200;
   ctx.body = {
     success: true,
     message: "Invitation mail sent successfully to residents!!!",
-    invitationLinks
+    invitationLinks,
+    userData
   };
   return;
 };
 
 exports.updateSocietyDetails = async (ctx) => {
-  const societyData = ctx.request.body;
-  const SocietyCollection = ctx.db.collection("societies");
-
+  const { area, societyName, location } = ctx.request.body;
   const { societyId } = ctx.request.user;
 
-  const society = await SocietyCollection.findOneAndUpdate(
+  const societyData = { area, name: societyName, location };
+
+  const society = await updateSocietyData(
+    ctx.db,
     { _id: societyId },
-    {
-      $set: societyData
-    },
-    { returnDocument: "after" }
+    societyData
   );
 
   console.log("society :", society, societyId);
@@ -151,9 +164,12 @@ exports.updateSocietyDetails = async (ctx) => {
 };
 
 exports.deleteSociety = async (ctx) => {
-  const SocietyCollection = ctx.db.collection("societies");
+  const { societyId, _id } = ctx.request.user;
 
-  const society = await SocietyCollection.findOneAndDelete({ _id });
+  const society = await deleteSocietyData(ctx.db, {
+    _id: societyId,
+    secretoryId: _id
+  });
 
   if (!society) {
     ctx.status = 404;

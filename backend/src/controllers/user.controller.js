@@ -1,3 +1,4 @@
+const { updateUser, updateUserData, findUsers } = require("../DB/user.db");
 const { hashPassword } = require("../services/password.service");
 const { ROLES } = require("../utils/constants");
 
@@ -15,8 +16,6 @@ exports.getUser = async (ctx) => {
 };
 
 exports.getAllUsers = async (ctx) => {
-  const UserCollection = ctx.db.collection("users");
-
   //   const query = { role: ctx.request.user.role };
   const query = {};
 
@@ -28,9 +27,8 @@ exports.getAllUsers = async (ctx) => {
 
   console.log("query :", query);
 
-  const users = await UserCollection.find(query, {
-    projection: { password: 0 }
-  }).toArray();
+  // const users = await UserCollection.find(query, {
+  const users = await findUsers(ctx.db, query);
 
   console.log("users", users);
 
@@ -40,26 +38,16 @@ exports.getAllUsers = async (ctx) => {
 };
 
 exports.verifyUser = async (ctx) => {
-  //   const id = req.user;
-  //   const { error } = userIdObjectValidator.validate(req.body);
-  //   if (error) {
-  //     return res
-  //       .status(400)
-  //       .json({ success: false, message: error.details[0].message });
-  //   }
   const { _id } = ctx.request.body;
 
-  const UserCollection = ctx.db.collection("users");
-
-  const user = await UserCollection.findOneAndUpdate(
-    _id,
+  const user = await updateUser(
+    ctx.db,
+    { _id },
     {
       isVerified: true,
       verifiedBy: id._id
-    },
-    { returnDocument: "after" }
+    }
   );
-  //   .select("userName isVerified verifiedBy email isEmailVerified ");
 
   if (!user) {
     ctx.status = 404;
@@ -77,25 +65,11 @@ exports.verifyUser = async (ctx) => {
 };
 
 exports.updateUseRole = async (ctx) => {
-  //   const { error } = useAccountRoleValidator.validate(req.body);
-  //   if (error) {
-  //     return res
-  //       .status(400)
-  //       .json({ success: false, message: error.details[0].message });
-  //   }
-
   const UserCollection = ctx.db.collection("users");
 
   const { role, _id } = ctx.request.body;
 
-  const user = await UserCollection.findOneAndUpdate(
-    { _id },
-    {
-      $set: { role }
-    },
-    { returnDocument: "after", projection: { password: 0 } }
-  );
-  // .select("role isVerified verifiedBy email isEmailVerified ");
+  const user = await UserCollection.findOneAndUpdate(ctx.db, { _id }, role);
 
   if (!user) {
     ctx.status = 404;
@@ -113,40 +87,32 @@ exports.updateUseRole = async (ctx) => {
 };
 
 exports.updateUser = async (ctx) => {
-  //   const { error } = userValidator.validate(req.body);
-  //   if (error) {
-  //     return res
-  //       .status(400)
-  //       .json({ success: false, message: error.details[0].message });
-  //   }
   const { _id } = ctx.request.user;
-  const { email, password, ...restUserData } = ctx.request.body;
-
-  const UserCollection = ctx.db.collection("users");
+  const { email, password, wingId, name, contact } = ctx.request.body;
 
   let dataToUpdate = {};
 
-  if (password) {
+  if (password && password !== "") {
     dataToUpdate["password"] = await hashPassword(password);
   }
 
-  if (email) {
+  if (email && email !== "") {
     dataToUpdate["email"] = email;
   }
+  if (name && name !== "") {
+    dataToUpdate["name"] = name;
+  }
+  if (wingId && wingId !== "") {
+    dataToUpdate["wingId"] = wingId;
+  }
+  if (contact && contact !== "") {
+    dataToUpdate["contact"] = contact;
+  }
 
-  dataToUpdate = { ...dataToUpdate, ...restUserData };
   console.log("user in update:", dataToUpdate);
 
-  const user = await UserCollection.findOneAndUpdate(
-    { _id },
-    {
-      $set: {
-        ...dataToUpdate
-      }
-    },
-    { returnDocument: "after", projection: { password: 0 } }
-  );
-  // .select("userName email isEmailVerified");
+  const user = await updateUserData(ctx.db, { _id }, dataToUpdate);
+
   console.log("user in update:", user);
 
   if (!user) {
@@ -164,7 +130,8 @@ exports.deleteUser = async (ctx) => {
   const UserCollection = ctx.db.collection("users");
   const { _id } = ctx.request.user;
 
-  const user = await UserCollection.findOneAndDelete({ _id });
+  // const user = await UserCollection.findOneAndDelete({ _id });
+  const user = await deleteUser(ctx.db, { _id });
   if (!user) {
     ctx.status = 404;
     ctx.body = { success: false, message: "User not found." };

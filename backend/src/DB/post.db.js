@@ -1,4 +1,3 @@
-const { POST_TYPE, POST_CONTENT_TYPE } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.insertPost = async (db, postData) => {
