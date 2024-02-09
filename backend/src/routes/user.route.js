@@ -27,7 +27,7 @@ router.put(
     nameValidator,
     emailValidator,
     contactValidator,
-    passwordValidator,
+    // passwordValidator,
     wingIdValidator
   ]),
   updateUser

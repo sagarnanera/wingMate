@@ -22,12 +22,11 @@ exports.getAllUsers = async (ctx) => {
   // TODO : get all users of society / wing except the requesting user.
 
   if (ctx.request.user.role === ROLES.SECRETORY)
-    query["societyId"] = ctx.request.user.societyId;
-  else query["wingId"] = ctx.request.user.wingId;
+    query["societyId"] = ctx.request.user?.societyId;
+  else query["wingId"] = ctx.request.user?.wingId;
 
   console.log("query :", query);
 
-  // const users = await UserCollection.find(query, {
   const users = await findUsers(ctx.db, query);
 
   console.log("users", users);
@@ -92,9 +91,9 @@ exports.updateUser = async (ctx) => {
 
   let dataToUpdate = {};
 
-  if (password && password !== "") {
-    dataToUpdate["password"] = await hashPassword(password);
-  }
+  // if (password && password !== "") {
+  //   dataToUpdate["password"] = await hashPassword(password);
+  // }
 
   if (email && email !== "") {
     dataToUpdate["email"] = email;

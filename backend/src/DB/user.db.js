@@ -64,3 +64,9 @@ exports.deleteUserData = async (db, searchQuery) => {
 
   return user;
 };
+
+exports.updateTotalPostCount = async (db, searchQuery, updateQuery) => {
+  const UserCollection = db.collection("users");
+
+  UserCollection.updateOne(searchQuery, updateQuery);
+};

@@ -73,10 +73,14 @@ exports.findPost = async (db, searchQuery) => {
   return post;
 };
 
-exports.findPosts = async (db, searchQuery) => {
+exports.findPosts = async (db, searchQuery, skip, limit, sort) => {
   const PostCollection = db.collection("posts");
 
-  const posts = await PostCollection.find(searchQuery).toArray();
+  const posts = await PostCollection.find(searchQuery)
+    .skip(skip)
+    .limit(limit)
+    .sort(sort)
+    .toArray();
 
   console.log(posts);
 

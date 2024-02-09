@@ -103,6 +103,32 @@ exports.resetTokenValidator = (ctx) => {
   return null;
 };
 
+exports.userIdValidator = (ctx) => {
+  // if (!userId) {
+  //   return { field: "userId", message: "UserId is required." };
+  // }
+
+  const { method: requestMethod } = ctx.request;
+  let { userId } = ctx.request.body;
+
+  if (requestMethod === "GET") {
+    userId = ctx.query?.userId;
+  }
+
+  if (requestMethod !== "GET" && !userId) {
+    return { field: "userId", message: "User ID is required" };
+  }
+
+  if (userId) {
+    const { error } = joi.string().uuid().required().validate(userId);
+    if (error) {
+      return { field: "userId", message: "User ID must be a valid UUID" };
+    }
+  }
+
+  return null;
+};
+
 // const loginValidator = joi.object({
 //   email: joi.string().email().required(),
 //   password: joi.string().required()

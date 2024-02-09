@@ -96,7 +96,7 @@ exports.residentsValidator = (ctx) => {
   if (error) {
     return {
       field: "residents",
-      message: "Residents must be an array of valid email addresses"
+      message: "Residents must be an array of valid email addresses."
     };
   }
 

@@ -5,36 +5,52 @@ const {
   updatePostData,
   deletePostData
 } = require("../DB/post.db");
+const { updateTotalPostCount } = require("../DB/user.db");
 const {
   POST_TYPE,
   POST_CONTENT_TYPE,
   FEED_TYPE
 } = require("../utils/constants");
+const { Promise } = require("bluebird");
 
 exports.createPost = async (ctx) => {
   const { title, text, media, contentType, feed } = ctx.request.body;
-
   const { _id: userId, societyId, wingId } = ctx.request.user;
 
   const postData = {
     userId,
     societyId,
     title,
+    // text,
+    // media,
     postType: POST_TYPE.NORMAL_POST,
-    contentType
+    contentType,
+    createdOn: new Date()
   };
 
   if (feed === FEED_TYPE.WING) {
     postData["wingId"] = wingId;
   }
 
-  if (contentType !== POST_CONTENT_TYPE.TEXT && media && media.length > 0) {
+  if (contentType !== POST_CONTENT_TYPE.TEXT) {
     postData["media"] = media;
   } else {
     postData["text"] = text;
   }
 
-  const post = await insertPost(ctx.db, postData);
+  const postPromise = insertPost(ctx.db, postData);
+
+  // TODO : check better way to update the counter as if post doesn't get inserted it will still update the count
+  const [post, _] = await Promise.all([
+    postPromise,
+    updateTotalPostCount(
+      ctx.db,
+      { _id: userId },
+      {
+        $inc: { totalPost: 1 }
+      }
+    )
+  ]);
 
   ctx.status = 200;
   ctx.body = {
@@ -42,12 +58,13 @@ exports.createPost = async (ctx) => {
     message: "Post added successfully!!!",
     post
   };
+
   return;
 };
 
 exports.getPosts = async (ctx) => {
   const { societyId, wingId } = ctx.request.user;
-  const { feed, userId } = ctx.query;
+  const { feed, userId, skip, limit } = ctx.query;
   const searchQuery = {};
 
   if (userId && userId !== "") {
@@ -56,16 +73,22 @@ exports.getPosts = async (ctx) => {
 
   if (feed === FEED_TYPE.WING) {
     searchQuery["wingId"] = wingId;
+  } else {
+    searchQuery["societyId"] = societyId;
+    searchQuery["wingId"] = null;
   }
 
-  searchQuery["societyId"] = societyId;
+  const sortFilter = {
+    createdOn: -1
+  };
 
-  const posts = await findPosts(ctx.db, searchQuery);
+  const posts = await findPosts(ctx.db, searchQuery, skip, limit, sortFilter);
 
   ctx.status = 200;
   ctx.body = {
     success: true,
     message: "Posts fetched successfully!!!",
+    totalPosts: posts.length,
     posts
   };
   return;
@@ -112,11 +135,7 @@ exports.updatePost = async (ctx) => {
     }
   }
 
-  if (
-    postData.contentType !== POST_CONTENT_TYPE.TEXT &&
-    postData.media &&
-    postData.media.length > 0
-  ) {
+  if (postData.contentType !== POST_CONTENT_TYPE.TEXT) {
     postData["media"] = postData.media;
     postData["text"] = null;
   } else {
@@ -124,7 +143,6 @@ exports.updatePost = async (ctx) => {
     postData["media"] = null;
   }
 
-  // const post = await PostCollection.findOneAndUpdate(
   const post = await updatePostData(
     ctx.db,
     { _id: postId, userId: _id, societyId },
@@ -158,11 +176,36 @@ exports.deletePost = async (ctx) => {
     societyId
   });
 
+  // const postPromise = deletePostData(ctx.db, {
+  //   _id,
+  //   userId,
+  //   societyId
+  // });
+
+  // const [post, _] = await Promise.all([
+  //   postPromise,
+  //   updateTotalPostCount(
+  //     ctx.db,
+  //     { _id: userId },
+  //     {
+  //       $inc: { totalPost: -1 }
+  //     }
+  //   )
+  // ]);
+
   if (!post) {
     ctx.status = 404;
     ctx.body = { success: false, message: "Post details not found." };
     return;
   }
+
+  await updateTotalPostCount(
+    ctx.db,
+    { _id: userId },
+    {
+      $inc: { totalPost: -1 }
+    }
+  );
 
   ctx.status = 200;
   ctx.body = {
