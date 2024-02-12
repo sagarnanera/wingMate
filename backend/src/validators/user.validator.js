@@ -73,7 +73,6 @@ exports.contactValidator = (ctx) => {
     .required()
     .validate(contact);
   if (error) {
-    console.log(error, 38);
     return {
       field: "contact",
       message: "Contact should be a 10-digit number"
@@ -93,7 +92,6 @@ exports.resetTokenValidator = (ctx) => {
   const { error } = joi.string().uuid().required().validate(token);
 
   if (error) {
-    console.log(error, 38);
     return {
       field: "token",
       message: "Reset password token is not valid"
@@ -128,17 +126,3 @@ exports.userIdValidator = (ctx) => {
 
   return null;
 };
-
-// const loginValidator = joi.object({
-//   email: joi.string().email().required(),
-//   password: joi.string().required()
-// });
-
-// const userValidator = joi.object({
-//   name: joi.string().min(3).max(20).required(),
-//   password: joi.string().required(),
-//   wingId: joi.string().uuid().required(),
-//   contact: joi.string().pattern().required()
-// });
-
-// exports.nameValidator

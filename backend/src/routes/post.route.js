@@ -15,11 +15,13 @@ const {
   textValidator,
   mediaValidator,
   feedTypeValidator,
-  postIdValidator,
-  skipValidator,
-  limitValidator
+  postIdValidator
 } = require("../validators/post.validator");
 const { userIdValidator } = require("../validators/user.validator");
+const {
+  skipValidator,
+  limitValidator
+} = require("../validators/common.validator");
 const router = new KoaRouter({ prefix: "/api/v1/post" });
 
 router.post(
@@ -59,14 +61,15 @@ router.put(
   authenticate(AllRoles),
   staticValidate([
     postIdValidator,
-    feedTypeValidator,
     titleValidator,
+    feedTypeValidator,
     contentTypeValidator,
     textValidator,
     mediaValidator
   ]),
   updatePost
 );
+
 router.delete(
   "/:postId",
   authenticate(AllRoles),

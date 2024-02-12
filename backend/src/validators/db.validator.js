@@ -1,3 +1,5 @@
+const { findComments, findComment } = require("../DB/comment.db");
+const { findPost } = require("../DB/post.db");
 const { findSociety } = require("../DB/society.db");
 const { findUser } = require("../DB/user.db");
 const { findWing } = require("../DB/wing.db");
@@ -40,7 +42,6 @@ exports.resetLinkValidator = async (ctx) => {
       "Password reset-link expired or invalid token!!",
       400
     );
-    // return { message: "Password reset-link expired or invalid token!!" };
   }
 
   ctx.request.user = user;
@@ -54,8 +55,6 @@ exports.isUserValidValidator = async (ctx) => {
 
   if (!result) {
     throw new customError("User not found.", 404);
-
-    // return { message: "User does not exist!!" };
   }
 
   ctx.request.user = result;
@@ -72,7 +71,6 @@ exports.societyExistValidator = async (ctx) => {
   });
 
   if (!result) {
-    // return { message: "Society details not found." };
     throw new customError("Society details not found.", 404);
   }
 
@@ -84,15 +82,57 @@ exports.societyExistValidator = async (ctx) => {
 exports.wingExistValidator = async (ctx) => {
   const { wingId, societyId } = ctx.request.body;
 
-  // const { invitationToken } = ctx.query;
-
-  // const { _id, societyId } = verifyJWTToken(invitationToken);
-
   const result = await findWing(ctx.db, { _id: wingId, societyId });
 
   if (!result) {
     throw new customError("Wing details not found.", 404);
-    // return { message: "Wing details not found." };
+  }
+
+  return null;
+};
+
+exports.postExistValidator = async (ctx) => {
+  let { postId } = ctx.state;
+  const { societyId } = ctx.request.user;
+
+  const result = await findPost(ctx.db, { _id: postId, societyId });
+
+  if (!result) {
+    throw new customError("Post details not found.", 404);
+  }
+
+  return null;
+};
+
+exports.commentExistValidator = async (ctx) => {
+  let { commentId, postId } = ctx.state;
+
+  if (commentId) {
+    const result = await findComment(ctx.db, { _id: commentId, postId });
+
+    if (!result) {
+      throw new customError("Comment details not found.", 404);
+    }
+  }
+
+  return null;
+};
+
+exports.isBookedValidator = async (ctx) => {
+  const booked = await isBooked(
+    ctx.db,
+    societyId,
+    propertyIds,
+    requestedDateRange
+  );
+
+  console.log("isBooked", booked);
+
+  if (booked) {
+    throw new customError(
+      "Requested properties are already booked, Please chose other available dates!!!",
+      400
+    );
   }
 
   return null;

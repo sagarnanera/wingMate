@@ -68,7 +68,7 @@ exports.findPost = async (db, searchQuery) => {
 
   const post = await PostCollection.findOne(searchQuery);
 
-  console.log(post);
+  // console.log(post);
 
   return post;
 };
@@ -82,21 +82,17 @@ exports.findPosts = async (db, searchQuery, skip, limit, sort) => {
     .sort(sort)
     .toArray();
 
-  console.log(posts);
+  // console.log(posts);
 
   return posts;
 };
 
-exports.updatePostData = async (db, searchQuery, dataToUpdate) => {
+exports.updatePostData = async (db, searchQuery, updateQuery) => {
   const PostCollection = db.collection("posts");
 
-  const post = await PostCollection.findOneAndUpdate(
-    searchQuery,
-    {
-      $set: dataToUpdate
-    },
-    { returnDocument: "after" }
-  );
+  const post = await PostCollection.findOneAndUpdate(searchQuery, updateQuery, {
+    returnDocument: "after"
+  });
 
   return post;
 };
@@ -106,7 +102,13 @@ exports.deletePostData = async (db, searchQuery) => {
 
   const post = await PostCollection.findOneAndDelete(searchQuery);
 
-  console.log(post);
+  // console.log(post);
 
   return post;
+};
+
+exports.updateTotalCommentCount = async (db, searchQuery, updateQuery) => {
+  const PostCollection = db.collection("posts");
+
+  return PostCollection.updateOne(searchQuery, updateQuery);
 };

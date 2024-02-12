@@ -1,3 +1,4 @@
+const { deleteComments } = require("../DB/comment.db");
 const {
   insertPost,
   findPost,
@@ -20,22 +21,24 @@ exports.createPost = async (ctx) => {
   const postData = {
     userId,
     societyId,
+    wingId,
     title,
-    // text,
-    // media,
+    totalLikes: 0,
+    totalComments: 0,
+    feed: FEED_TYPE.SOCIETY,
     postType: POST_TYPE.NORMAL_POST,
     contentType,
     createdOn: new Date()
   };
 
   if (feed === FEED_TYPE.WING) {
-    postData["wingId"] = wingId;
+    postData["feed"] = FEED_TYPE.WING;
   }
 
-  if (contentType !== POST_CONTENT_TYPE.TEXT) {
-    postData["media"] = media;
-  } else {
+  if (contentType === POST_CONTENT_TYPE.TEXT) {
     postData["text"] = text;
+  } else {
+    postData["media"] = media;
   }
 
   const postPromise = insertPost(ctx.db, postData);
@@ -65,17 +68,18 @@ exports.createPost = async (ctx) => {
 exports.getPosts = async (ctx) => {
   const { societyId, wingId } = ctx.request.user;
   const { feed, userId, skip, limit } = ctx.query;
-  const searchQuery = {};
+
+  const searchQuery = {
+    societyId,
+    wingId
+  };
 
   if (userId && userId !== "") {
     searchQuery["userId"] = userId;
   }
 
   if (feed === FEED_TYPE.WING) {
-    searchQuery["wingId"] = wingId;
-  } else {
-    searchQuery["societyId"] = societyId;
-    searchQuery["wingId"] = null;
+    searchQuery["feed"] = FEED_TYPE.WING;
   }
 
   const sortFilter = {
@@ -119,34 +123,36 @@ exports.getPost = async (ctx) => {
 };
 
 exports.updatePost = async (ctx) => {
-  const { feed, ...postData } = ctx.request.body;
+  const { feed, title, text, media, contentType } = ctx.request.body;
   const { societyId, _id, wingId } = ctx.request.user;
   const { postId } = ctx.params;
 
-  console.log("postData before update:", postData);
+  const updateQuery = {};
+  const postData = { title, text, media, contentType };
 
-  if (feed) {
-    if (feed === FEED_TYPE.WING) {
-      postData["wingId"] = wingId;
-    }
+  postData["feed"] = FEED_TYPE.SOCIETY;
 
-    if (feed === FEED_TYPE.SOCIETY) {
-      postData["wingId"] = null;
-    }
+  if (feed === FEED_TYPE.WING) {
+    postData["feed"] = FEED_TYPE.WING;
   }
 
   if (postData.contentType !== POST_CONTENT_TYPE.TEXT) {
     postData["media"] = postData.media;
-    postData["text"] = null;
+    updateQuery.$unset = { text: 1 };
+    delete postData.text;
   } else {
     postData["text"] = postData.text;
-    postData["media"] = null;
+    updateQuery.$unset = { media: 1 };
+    delete postData.media;
   }
+
+  updateQuery.$set = postData;
+  console.log("postData before update:", postData, updateQuery);
 
   const post = await updatePostData(
     ctx.db,
-    { _id: postId, userId: _id, societyId },
-    postData
+    { _id: postId, userId: _id, societyId, wingId },
+    updateQuery
   );
 
   console.log("post after update:", post);
@@ -167,13 +173,14 @@ exports.updatePost = async (ctx) => {
 };
 
 exports.deletePost = async (ctx) => {
-  const { societyId, _id: userId } = ctx.request.user;
+  const { societyId, _id: userId, wingId } = ctx.request.user;
   const { postId: _id } = ctx.params;
 
   const post = await deletePostData(ctx.db, {
     _id,
     userId,
-    societyId
+    societyId,
+    wingId
   });
 
   // const postPromise = deletePostData(ctx.db, {
@@ -206,6 +213,9 @@ exports.deletePost = async (ctx) => {
       $inc: { totalPost: -1 }
     }
   );
+
+  // TODO : delete all the comments on this post
+  await deleteComments(ctx.db, { postId: _id });
 
   ctx.status = 200;
   ctx.body = {

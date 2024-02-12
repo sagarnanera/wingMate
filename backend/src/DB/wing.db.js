@@ -24,7 +24,6 @@ exports.insertWing = async (db, wingData) => {
 
   const wing = await WingCollection.insertOne({
     _id,
-    wingId,
     wingAdminId,
     ...restWingData
   });
@@ -49,6 +48,16 @@ exports.findWing = async (db, searchQuery) => {
   console.log(wing);
 
   return wing;
+};
+
+exports.findWings = async (db, searchQuery) => {
+  const WingCollection = db.collection("wings");
+
+  const wings = await WingCollection.find(searchQuery).toArray();
+
+  console.log(wings);
+
+  return wings;
 };
 
 exports.updateWingData = async (db, searchQuery, dataToUpdate) => {

@@ -1,18 +1,20 @@
 const { updateUserData } = require("../DB/user.db");
-const { insertWing } = require("../DB/wing.db");
+const {
+  insertWing,
+  deleteWingData,
+  updateWingData,
+  findWing,
+  findWings
+} = require("../DB/wing.db");
 const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.addWing = async (ctx) => {
-  // const WingCollection = ctx.db.collection("wings");
-  // const UserCollection = ctx.db.collection("users");
-
   const { societyId } = ctx.request.user;
 
   const { wingAdminId, ...restWingData } = ctx.request.body;
 
   if (wingAdminId && wingAdminId !== "") {
-    // const wingAdmin = await UserCollection.findOneAndUpdate(
     const wingAdmin = await updateUserData(
       ctx.db,
       { _id: wingAdminId, societyId },
@@ -31,11 +33,7 @@ exports.addWing = async (ctx) => {
     }
   }
 
-  const _id = generateUUID();
-
-  const wing = await WingCollection.insertOne({
-    // const wing = await insertWing(ctx.db, {
-    _id,
+  const wing = await insertWing(ctx.db, {
     societyId,
     wingAdminId,
     ...restWingData
@@ -45,16 +43,16 @@ exports.addWing = async (ctx) => {
   ctx.body = {
     success: true,
     message: "Wing details added successfully!!!",
-    wing: { _id: wing.insertedId, ...restWingData }
+    wing
   };
   return;
 };
 
 exports.getWingDetails = async (ctx) => {
-  const WingCollection = ctx.db.collection("wings");
   const { wingId } = ctx.params;
   const { societyId } = ctx.request.user;
-  const wing = await WingCollection.findOne({ _id: wingId, societyId });
+
+  const wing = await findWing(ctx.db, { _id: wingId, societyId });
 
   if (!wing) {
     ctx.status = 404;
@@ -72,11 +70,9 @@ exports.getWingDetails = async (ctx) => {
 };
 
 exports.getWings = async (ctx) => {
-  const WingCollection = ctx.db.collection("wings");
-
   const { societyId } = ctx.request.user;
 
-  const wings = await WingCollection.find({ societyId }).toArray();
+  const wings = await findWings(ctx.db, { societyId });
 
   ctx.status = 200;
   ctx.body = {
@@ -88,17 +84,15 @@ exports.getWings = async (ctx) => {
 };
 
 exports.updateWingDetails = async (ctx) => {
-  const WingCollection = ctx.db.collection("wings");
-  const UserCollection = ctx.db.collection("users");
-
   const { societyId } = ctx.request.user;
   const { wingId } = ctx.params;
   const { wingAdminId, ...restWingData } = ctx.request.body;
 
   if (wingAdminId && wingAdminId !== "") {
-    const wingAdmin = await UserCollection.findOneAndUpdate(
+    const wingAdmin = await updateUserData(
+      ctx.db,
       { _id: wingAdminId, societyId },
-      { $set: { role: ROLES.WING_ADMIN } }
+      { role: ROLES.WING_ADMIN }
     );
 
     console.log("wingAdmin", wingAdmin);
@@ -115,12 +109,10 @@ exports.updateWingDetails = async (ctx) => {
 
   console.log("wing before update:", restWingData);
 
-  const wing = await WingCollection.findOneAndUpdate(
+  const wing = await updateWingData(
+    ctx.db,
     { _id: wingId, societyId },
-    {
-      $set: restWingData
-    },
-    { returnDocument: "after" }
+    restWingData
   );
 
   console.log("wing after update:", wing);
@@ -141,17 +133,18 @@ exports.updateWingDetails = async (ctx) => {
 };
 
 exports.deleteWingDetails = async (ctx) => {
-  const WingCollection = ctx.db.collection("wings");
   const { societyId } = ctx.request.user;
   const { wingId } = ctx.params;
 
-  const wing = await WingCollection.findOneAndDelete({
+  const wing = await deleteWingData(ctx.db, {
     _id: wingId,
     societyId
   });
+
   if (!wing) {
     ctx.status = 404;
     ctx.body = { success: false, message: "Wing details not found." };
+    return;
   }
 
   ctx.status = 200;

@@ -28,24 +28,24 @@ exports.createBooking = async (ctx) => {
     endDate: new Date(new Date(endDate).setHours(0, 0, 0))
   };
 
-  const booked = await isBooked(
-    ctx.db,
-    societyId,
-    propertyIds,
-    requestedDateRange
-  );
+  // const booked = await isBooked(
+  //   ctx.db,
+  //   societyId,
+  //   propertyIds,
+  //   requestedDateRange
+  // );
 
-  console.log("isBooked", booked);
+  // console.log("isBooked", booked);
 
-  if (booked) {
-    ctx.status = 400;
-    ctx.body = {
-      success: false,
-      message:
-        "Requested properties are already booked, Please chose other available dates!!!"
-    };
-    return;
-  }
+  // if (booked) {
+  //   ctx.status = 400;
+  //   ctx.body = {
+  //     success: false,
+  //     message:
+  //       "Requested properties are already booked, Please chose other available dates!!!"
+  //   };
+  //   return;
+  // }
 
   // actual booking starts from here
   const [{ totalAmount }] = await calculatePropertyRent(

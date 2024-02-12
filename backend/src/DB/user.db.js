@@ -24,8 +24,6 @@ exports.findUser = async (db, searchQuery) => {
     projection: { password: 0 }
   });
 
-  console.log(user);
-
   return user;
 };
 

@@ -88,18 +88,18 @@ exports.insertBooking = async (
 
   const booking = await BookingCollection.insertOne(bookingData);
 
-  if (!booking) {
-    // ctx.status = 400;
-    // ctx.body = {
-    //   success: false,
-    //   message:
-    //     "Unable to book the requested properties, Please try again later!!!"
-    // };
+  // if (!booking) {
+  //   // ctx.status = 400;
+  //   // ctx.body = {
+  //   //   success: false,
+  //   //   message:
+  //   //     "Unable to book the requested properties, Please try again later!!!"
+  //   // };
 
-    return null;
-  }
+  //   return null;
+  // }
 
-  return bookingData;
+  return booking;
 };
 
 exports.isBooked = async (db, societyId, propertyIds, requestedDateRange) => {

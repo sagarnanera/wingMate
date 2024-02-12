@@ -19,6 +19,7 @@ const propertyRouter = require("./routes/property.route");
 const bookingRouter = require("./routes/booking.route");
 const eventRouter = require("./routes/event.route");
 const postRouter = require("./routes/post.route");
+const commentRouter = require("./routes/comment.route");
 
 // logger
 app.use(async (ctx, next) => {
@@ -40,6 +41,7 @@ app.use(propertyRouter.routes());
 app.use(bookingRouter.routes());
 app.use(eventRouter.routes());
 app.use(postRouter.routes());
+app.use(commentRouter.routes());
 
 app.use(notFoundHandler);
 app.on("error", ErrorHandler);

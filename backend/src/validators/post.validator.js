@@ -12,6 +12,10 @@ const { POST_CONTENT_TYPE, FEED_TYPE } = require("../utils/constants");
 //   text: 'all pay maintenance fees'
 // }
 
+const IMAGE_REGX = /\.(jpg|jpeg|png|webp)$/i;
+const VIDEO_REGX = /\.(mp4)$/i;
+const GIF_REGX = /\.(gif)$/i;
+
 exports.titleValidator = (ctx) => {
   let { title } = ctx.request.body;
 
@@ -28,32 +32,6 @@ exports.titleValidator = (ctx) => {
   }
 
   ctx.request.body.title = title;
-
-  return null;
-};
-
-exports.skipValidator = (ctx) => {
-  let { skip } = ctx.request.query;
-  skip = parseInt(skip);
-
-  if (skip && (isNaN(skip) || skip < 0)) {
-    return { field: "skip", message: "Skip must be a non-negative integer" };
-  }
-
-  ctx.request.query.skip = skip || 0;
-
-  return null;
-};
-
-exports.limitValidator = (ctx) => {
-  let { limit } = ctx.request.query;
-  limit = parseInt(limit);
-
-  if (limit && (isNaN(limit) || limit <= 0)) {
-    return { field: "limit", message: "Limit must be a positive integer" };
-  }
-
-  ctx.request.query.limit = limit || 10;
 
   return null;
 };
@@ -99,13 +77,17 @@ exports.feedTypeValidator = (ctx) => {
 exports.textValidator = (ctx) => {
   let { text, contentType } = ctx.request.body;
 
-  if (!Object.values(POST_CONTENT_TYPE).includes(contentType)) {
-    return null;
-  }
+  // if (!Object.values(POST_CONTENT_TYPE).includes(contentType)) {
+  //   return null;
+  // }
 
-  if (contentType !== "text" && text) {
-    return { field: "text", message: "Text is not allowed in text posts." };
-  }
+  // if (contentType !== "text") {
+  // return null;
+  // }
+
+  // if (contentType !== "text" && text) {
+  //   return { field: "text", message: "Text is not allowed in text posts." };
+  // }
 
   if (contentType === "text" && (!text || text === "")) {
     return { field: "text", message: "Text is required" };
@@ -129,24 +111,44 @@ exports.textValidator = (ctx) => {
 };
 
 exports.contentTypeValidator = (ctx) => {
-  const { contentType } = ctx.request.body;
+  const { media, text } = ctx.request.body;
 
-  if (!contentType) {
-    return { field: "contentType", message: "Content Type is required" };
-  }
+  let contentType = POST_CONTENT_TYPE.TEXT;
 
-  const { error } = joi
-    .array()
-    .valid(...Object.values(POST_CONTENT_TYPE))
-    .required()
-    .validate(contentType);
-
-  if (error) {
+  if (!media && !text) {
     return {
-      field: "contentType",
-      message: "Content Type should be one among [text, image, video, gif]."
+      field: "media_text",
+      message: "One of the media or text is required."
     };
   }
+
+  if (text && text.trim() !== "") {
+    contentType = POST_CONTENT_TYPE.TEXT;
+  }
+
+  if (media && Array.isArray(media) && media.length > 0) {
+    // if there is images in the media then contentType will be image
+    if (IMAGE_REGX.test(media[0])) {
+      contentType = POST_CONTENT_TYPE.IMAGE;
+    }
+
+    // if there is a video in the media then contentType will be video
+    else if (VIDEO_REGX.test(media[0])) {
+      contentType = POST_CONTENT_TYPE.VIDEO;
+    }
+
+    // if there is a gif in the media then contentType will be gif
+    else if (GIF_REGX.test(media[0])) {
+      contentType = POST_CONTENT_TYPE.GIF;
+    } else {
+      return {
+        field: "media",
+        message: "Media should contain one of the images, video, or gif only."
+      };
+    }
+  }
+
+  ctx.request.body.contentType = contentType;
 
   return null;
 };
@@ -154,34 +156,13 @@ exports.contentTypeValidator = (ctx) => {
 exports.mediaValidator = (ctx) => {
   const { media, contentType } = ctx.request.body;
 
-  if (!Object.values(POST_CONTENT_TYPE).includes(contentType)) {
-    return null;
-  }
-
-  if (contentType === "text" && media) {
-    return { field: "media", message: "Media is not allowed in text posts." };
-  }
+  // if (contentType === "text" && media) {
+  //   return { field: "media", message: "Media is not allowed in text posts." };
+  // }
 
   if (contentType !== "text" && !media) {
     return { field: "media", message: "Media is required" };
   }
-
-  //   const mediaTypeValidationMap = {
-  //     [POST_CONTENT_TYPE.IMAGE]: {
-  //       pattern: /\.(jpg|jpeg|png)$/i,
-  //       message: "Image URLs are required"
-  //     },
-  //     [POST_CONTENT_TYPE.VIDEO]: {
-  //       pattern: /\.(mp4|avi|mov)$/i,
-  //       message: "Video URLs are required"
-  //     },
-  //     [POST_CONTENT_TYPE.GIF]: {
-  //       pattern: /\.(gif)$/i,
-  //       message: "GIF URLs are required"
-  //     }
-  //   };
-
-  //   const validationSchemaPattern = mediaTypeValidationMap[contentType];
 
   if (media) {
     if (!Array.isArray(media)) {
@@ -199,12 +180,7 @@ exports.mediaValidator = (ctx) => {
         // valid image URLs
         const imageValidationResult = joi
           .array()
-          .items(
-            joi
-              .string()
-              .uri()
-              .pattern(/\.(jpg|jpeg|png|webp)$/i)
-          )
+          .items(joi.string().uri().pattern(IMAGE_REGX))
           .validate(media);
 
         if (imageValidationResult?.error) {
@@ -224,10 +200,7 @@ exports.mediaValidator = (ctx) => {
           };
         }
         // valid video URL
-        const videoSchema = joi
-          .string()
-          .uri()
-          .pattern(/\.(mp4)$/i);
+        const videoSchema = joi.string().uri().pattern(VIDEO_REGX);
         const videoValidationResult = videoSchema.validate(media[0]);
         if (videoValidationResult?.error) {
           return {
@@ -244,10 +217,7 @@ exports.mediaValidator = (ctx) => {
           };
         }
         // valid GIF URL
-        const gifSchema = joi
-          .string()
-          .uri()
-          .pattern(/\.(gif)$/i);
+        const gifSchema = joi.string().uri().pattern(GIF_REGX);
         const gifValidationResult = gifSchema.validate(media[0]);
         if (gifValidationResult?.error) {
           return { field: "media", message: "Invalid GIF URL format" };
@@ -257,48 +227,35 @@ exports.mediaValidator = (ctx) => {
         return null; // No specific validation for other content types
     }
   }
-  //   if (media) {
-  //     switch (contentType) {
-  //       case "image":
-  //         break;
-  //       case "video":
-  //         break;
-  //       case "gif":
-  //         break;
-
-  //       default:
-  //         break;
-  //     }
-
-  // const { error } = joi
-  //   .array()
-  //   .items(joi.string().uri().required())
-  //   .required()
-  //   .validate(media);
-
-  // if (error) {
-  //   console.log(error, 38);
-  //   return {
-  //     field: "media",
-  //     message: "Media must be an array of valid URLs."
-  //   };
-  // }
-  //   }
 
   return null;
 };
 
 exports.postIdValidator = (ctx) => {
-  const { postId } = ctx.params;
+  const { method: requestMethod } = ctx.request;
+  let { postId, commentId } = ctx.params;
 
-  if (!postId) {
-    return { field: "postId", message: "PostId is required." };
+  if (commentId) {
+    return null;
   }
 
+  if (requestMethod === "POST" && ctx.request.url.includes("comment")) {
+    console.log("includes comment", ctx.request.body);
+    postId = ctx.request.body.postId;
+  }
+
+  if (!postId) {
+    return { field: "postId", message: "postId is required" };
+  }
+
+  // if (postId) {
   const { error } = joi.string().uuid().required().validate(postId);
   if (error) {
     return { field: "postId", message: "Post ID must be a valid UUID" };
   }
+
+  ctx.state.postId = postId;
+  // }
 
   return null;
 };
