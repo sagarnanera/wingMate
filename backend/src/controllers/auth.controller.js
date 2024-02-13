@@ -1,4 +1,4 @@
-const { updateUserData, findUser } = require("../DB/user.db");
+const { updateUserData, findUserWithPass } = require("../DB/user.db");
 const cookieOptions = require("../config/cookie.config");
 const { customError } = require("../handlers/error.handler");
 const { genJWTToken, verifyJWTToken } = require("../services/jwt.service");
@@ -7,10 +7,11 @@ const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 
 exports.loginController = async (ctx) => {
-  const User = ctx.db.collection("users");
+  // const User = ctx.db.collection("users");
   const { email, password } = ctx.request.body;
 
-  const user = await User.findOne({ email: email });
+  // const user = await User.findOne({ email: email });
+  const user = await findUserWithPass(ctx.db, { email: email });
 
   if (!user) {
     ctx.status = 404;
@@ -75,13 +76,17 @@ exports.registerController = async (ctx) => {
     ctx.db,
     { _id, societyId, invitationToken },
     {
-      invitationToken: null,
-      password: hash,
-      wingId,
-      role: ROLES.RESIDENT,
-      totalPost: 0,
-      name,
-      contact
+      $set: {
+        password: hash,
+        wingId,
+        role: ROLES.RESIDENT,
+        totalPost: 0,
+        name,
+        contact
+      },
+      $unset: {
+        invitationToken: 1
+      }
     }
   );
 
@@ -139,8 +144,10 @@ exports.ForgotPass = async (ctx) => {
     ctx.db,
     { _id: user._id },
     {
-      resetPasswordExpires,
-      resetPasswordToken
+      $set: {
+        resetPasswordExpires,
+        resetPasswordToken
+      }
     }
   );
 
@@ -166,9 +173,13 @@ exports.ResetPass = async (ctx) => {
     ctx.db,
     { _id: user._id },
     {
-      password: newHash,
-      resetPasswordExpires: null,
-      resetPasswordToken: null
+      $set: {
+        password: newHash
+      },
+      $unset: {
+        resetPasswordExpires: 1,
+        resetPasswordToken: 1
+      }
     }
   );
 

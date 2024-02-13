@@ -14,19 +14,18 @@ exports.createBooking = async (ctx) => {
   const { _id: userId, societyId } = ctx.request.user;
   const {
     propertyIds,
-    startDate,
-    endDate,
+    requestedDateRange,
     reason,
-    createdOn = new Date(),
-    bookingType,
-    eventId
+    createdOn = new Date()
+    // bookingType,
+    // eventId
   } = ctx.request.body;
 
   // checking availability for the requested properties
-  const requestedDateRange = {
-    startDate: new Date(new Date(startDate).setHours(0, 0, 0)),
-    endDate: new Date(new Date(endDate).setHours(0, 0, 0))
-  };
+  // const requestedDateRange = {
+  //   startDate: new Date(new Date(startDate).setHours(0, 0, 0)),
+  //   endDate: new Date(new Date(endDate).setHours(0, 0, 0))
+  // };
 
   // const booked = await isBooked(
   //   ctx.db,
@@ -67,24 +66,24 @@ exports.createBooking = async (ctx) => {
     createdOn
   };
 
-  if (bookingType === BOOKING_TYPE.EVENT) {
-    const isValid = await getEvent(ctx.db, {
-      _id: eventId,
-      startDate: requestedDateRange.startDate,
-      endDate: requestedDateRange.endDate
-    });
-    if (!isValid) {
-      ctx.status = 400;
-      ctx.body = {
-        success: false,
-        message: "Event not found!!!"
-      };
-      return;
-    }
+  // if (bookingType === BOOKING_TYPE.EVENT) {
+  //   const isValid = await getEvent(ctx.db, {
+  //     _id: eventId,
+  //     startDate: requestedDateRange.startDate,
+  //     endDate: requestedDateRange.endDate
+  //   });
+  //   if (!isValid) {
+  //     ctx.status = 400;
+  //     ctx.body = {
+  //       success: false,
+  //       message: "Event not found!!!"
+  //     };
+  //     return;
+  //   }
 
-    bookingData["eventId"] = eventId;
-    bookingData["bookingType"] = BOOKING_TYPE.EVENT;
-  }
+  //   bookingData["eventId"] = eventId;
+  //   bookingData["bookingType"] = BOOKING_TYPE.EVENT;
+  // }
 
   const booking = await BookingCollection.insertOne(bookingData);
 

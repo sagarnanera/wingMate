@@ -36,6 +36,24 @@ exports.titleValidator = (ctx) => {
   return null;
 };
 
+exports.shareToFBValidator = (ctx) => {
+  let { shareToFB } = ctx.request.body;
+
+  if (shareToFB === undefined) {
+    return { field: "shareToFB", message: "ShareToFB is required" };
+  }
+
+  const { error } = joi.boolean().strict().required().validate(shareToFB);
+
+  if (error) {
+    return { field: "shareToFB", message: "ShareToFB should be boolean." };
+  }
+
+  ctx.request.body.shareToFB = shareToFB;
+
+  return null;
+};
+
 exports.feedTypeValidator = (ctx) => {
   const { method: requestMethod } = ctx.request;
   let { feed } = ctx.request.body;

@@ -18,7 +18,7 @@ exports.addWing = async (ctx) => {
     const wingAdmin = await updateUserData(
       ctx.db,
       { _id: wingAdminId, societyId },
-      { role: ROLES.WING_ADMIN }
+      { $set: { role: ROLES.WING_ADMIN } }
     );
 
     console.log("wingAdmin", wingAdmin);
@@ -92,7 +92,7 @@ exports.updateWingDetails = async (ctx) => {
     const wingAdmin = await updateUserData(
       ctx.db,
       { _id: wingAdminId, societyId },
-      { role: ROLES.WING_ADMIN }
+      { $set: { role: ROLES.WING_ADMIN } }
     );
 
     console.log("wingAdmin", wingAdmin);
@@ -105,6 +105,8 @@ exports.updateWingDetails = async (ctx) => {
       };
       return;
     }
+
+    restWingData["wingAdminId"] = wingAdminId;
   }
 
   console.log("wing before update:", restWingData);

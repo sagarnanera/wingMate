@@ -27,6 +27,14 @@ exports.findUser = async (db, searchQuery) => {
   return user;
 };
 
+exports.findUserWithPass = async (db, searchQuery) => {
+  const UserCollection = db.collection("users");
+
+  const user = await UserCollection.findOne(searchQuery);
+
+  return user;
+};
+
 exports.findUsers = async (db, searchQuery) => {
   const UserCollection = db.collection("users");
 
@@ -39,16 +47,13 @@ exports.findUsers = async (db, searchQuery) => {
   return users;
 };
 
-exports.updateUserData = async (db, searchQuery, dataToUpdate) => {
+exports.updateUserData = async (db, searchQuery, updateQuery) => {
   const UserCollection = db.collection("users");
 
-  const user = await UserCollection.findOneAndUpdate(
-    searchQuery,
-    {
-      $set: dataToUpdate
-    },
-    { returnDocument: "after", projection: { password: 0 } }
-  );
+  const user = await UserCollection.findOneAndUpdate(searchQuery, updateQuery, {
+    returnDocument: "after",
+    projection: { password: 0 }
+  });
 
   return user;
 };

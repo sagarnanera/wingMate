@@ -89,16 +89,15 @@ exports.getProperty = async (ctx) => {
 
 exports.updateProperty = async (ctx) => {
   // const { _id } = ctx.request.user;
-  const propertyData = ctx.request.body;
+  const { wingId, name, area, location } = ctx.request.body;
   const { societyId } = ctx.request.user;
   const { propertyId } = ctx.params;
-  console.log("propertyData before update:", propertyData);
 
   // const property = await PropertyCollection.findOneAndUpdate(
   const property = await updatePropertyData(
     ctx.db,
     { _id: propertyId, societyId },
-    propertyData
+    { wingId, name, area, location }
   );
 
   console.log("property after update:", property);

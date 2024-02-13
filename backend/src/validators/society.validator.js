@@ -115,15 +115,9 @@ exports.invitationTokenValidator = (ctx) => {
 
   const { _id, societyId } = verifyJWTToken(invitationToken);
 
-  // if (error) {
-  //   return {
-  //     field: "residents",
-  //     message: "Residents must be an array of valid email addresses"
-  //   };
-  // }
-
   ctx.request.body._id = _id;
   ctx.request.body.societyId = societyId;
+  ctx.request.user = { societyId };
 
   return null;
 };

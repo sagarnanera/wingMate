@@ -15,7 +15,8 @@ const {
   textValidator,
   mediaValidator,
   feedTypeValidator,
-  postIdValidator
+  postIdValidator,
+  shareToFBValidator
 } = require("../validators/post.validator");
 const { userIdValidator } = require("../validators/user.validator");
 const {
@@ -32,7 +33,8 @@ router.post(
     feedTypeValidator,
     contentTypeValidator,
     textValidator,
-    mediaValidator
+    mediaValidator,
+    shareToFBValidator
   ]),
   createPost
 );

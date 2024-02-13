@@ -8,6 +8,7 @@ const {
 } = require("../DB/post.db");
 const { updateTotalPostCount } = require("../DB/user.db");
 const { customError } = require("../handlers/error.handler");
+const { postToFacebook } = require("../services/facebook.service");
 const {
   POST_TYPE,
   POST_CONTENT_TYPE,
@@ -16,7 +17,7 @@ const {
 const { Promise } = require("bluebird");
 
 exports.createPost = async (ctx) => {
-  const { title, text, media, contentType, feed } = ctx.request.body;
+  const { title, text, media, contentType, feed, shareToFB } = ctx.request.body;
   const { _id: userId, societyId, wingId } = ctx.request.user;
 
   const postData = {
@@ -40,6 +41,17 @@ exports.createPost = async (ctx) => {
     postData["text"] = text;
   } else {
     postData["media"] = media;
+  }
+
+  if (shareToFB) {
+    try {
+      const { postId: fbPostId } = await postToFacebook(postData);
+      postData["fbPostId"] = fbPostId;
+    } catch (error) {
+      console.log("err in fb share", error);
+
+      throw new customError("Unable to share post on facebook.", 400);
+    }
   }
 
   const postPromise = insertPost(ctx.db, postData);
@@ -116,14 +128,14 @@ exports.getPost = async (ctx) => {
     societyId
   });
 
-  if (post.feed === FEED_TYPE.WING && post.wingId !== wingId) {
-    throw new customError("Not allowed.", 403);
-  }
-
   if (!post) {
     ctx.status = 404;
     ctx.body = { success: false, message: "post not found." };
     return;
+  }
+
+  if (post.feed === FEED_TYPE.WING && post.wingId !== wingId) {
+    throw new customError("Not allowed.", 403);
   }
 
   ctx.status = 200;

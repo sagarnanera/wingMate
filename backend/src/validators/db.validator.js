@@ -1,3 +1,4 @@
+const { isBooked } = require("../DB/booking.db");
 const { findComments, findComment } = require("../DB/comment.db");
 const { findLike } = require("../DB/like.db");
 const { findPost } = require("../DB/post.db");
@@ -82,12 +83,18 @@ exports.societyExistValidator = async (ctx) => {
 };
 
 exports.wingExistValidator = async (ctx) => {
-  const { wingId, societyId } = ctx.request.body;
+  const { wingId } = ctx.request.body;
+  console.log(ctx.request.user);
+  const { societyId } = ctx.request.user;
 
-  const result = await findWing(ctx.db, { _id: wingId, societyId });
+  if (wingId) {
+    const result = await findWing(ctx.db, { _id: wingId, societyId });
 
-  if (!result) {
-    throw new customError("Wing details not found.", 404);
+    console.log("result", result);
+
+    if (!result) {
+      throw new customError("Wing details not found.", 404);
+    }
   }
 
   return null;
@@ -144,6 +151,9 @@ exports.commentExistValidator = async (ctx) => {
 };
 
 exports.isBookedValidator = async (ctx) => {
+  const { requestedDateRange } = ctx.request.body;
+  const { societyId } = ctx.request.user;
+
   const booked = await isBooked(
     ctx.db,
     societyId,

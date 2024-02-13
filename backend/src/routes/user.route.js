@@ -17,6 +17,9 @@ const {
   passwordValidator
 } = require("../validators/user.validator");
 const { wingIdValidator } = require("../validators/wing.validator");
+const dbValidate = require("../middlewares/dbValidate.middleware");
+const { wingExistValidator } = require("../validators/db.validator");
+const { societyIdValidator } = require("../validators/society.validator");
 const router = new KoaRouter({ prefix: "/api/v1/user" });
 
 router.get("/", authenticate(AllRoles), getUser);
@@ -27,9 +30,9 @@ router.put(
     nameValidator,
     emailValidator,
     contactValidator,
-    // passwordValidator,
     wingIdValidator
   ]),
+  dbValidate([wingExistValidator]),
   updateUser
 );
 router.delete("/", authenticate(AllRoles), deleteUser);

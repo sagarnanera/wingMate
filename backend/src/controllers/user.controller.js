@@ -1,4 +1,4 @@
-const { updateUser, updateUserData, findUsers } = require("../DB/user.db");
+const { updateUserData, findUsers } = require("../DB/user.db");
 const { hashPassword } = require("../services/password.service");
 const { ROLES } = require("../utils/constants");
 
@@ -39,12 +39,14 @@ exports.getAllUsers = async (ctx) => {
 exports.verifyUser = async (ctx) => {
   const { _id } = ctx.request.body;
 
-  const user = await updateUser(
+  const user = await updateUserData(
     ctx.db,
     { _id },
     {
-      isVerified: true,
-      verifiedBy: id._id
+      $set: {
+        isVerified: true,
+        verifiedBy: id._id
+      }
     }
   );
 
@@ -64,11 +66,12 @@ exports.verifyUser = async (ctx) => {
 };
 
 exports.updateUseRole = async (ctx) => {
-  const UserCollection = ctx.db.collection("users");
+  // const UserCollection = ctx.db.collection("users");
 
   const { role, _id } = ctx.request.body;
 
-  const user = await UserCollection.findOneAndUpdate(ctx.db, { _id }, role);
+  // const user = await UserCollection.findOneAndUpdate(ctx.db, { _id }, role);
+  const user = await updateUserData(ctx.db, { _id }, { $set: { role } });
 
   if (!user) {
     ctx.status = 404;
@@ -87,30 +90,13 @@ exports.updateUseRole = async (ctx) => {
 
 exports.updateUser = async (ctx) => {
   const { _id } = ctx.request.user;
-  const { email, password, wingId, name, contact } = ctx.request.body;
+  const { name, contact, wingId } = ctx.request.body;
 
-  let dataToUpdate = {};
-
-  // if (password && password !== "") {
-  //   dataToUpdate["password"] = await hashPassword(password);
-  // }
-
-  if (email && email !== "") {
-    dataToUpdate["email"] = email;
-  }
-  if (name && name !== "") {
-    dataToUpdate["name"] = name;
-  }
-  if (wingId && wingId !== "") {
-    dataToUpdate["wingId"] = wingId;
-  }
-  if (contact && contact !== "") {
-    dataToUpdate["contact"] = contact;
-  }
-
-  console.log("user in update:", dataToUpdate);
-
-  const user = await updateUserData(ctx.db, { _id }, dataToUpdate);
+  const user = await updateUserData(
+    ctx.db,
+    { _id },
+    { $set: { name, contact, wingId } }
+  );
 
   console.log("user in update:", user);
 
@@ -126,7 +112,7 @@ exports.updateUser = async (ctx) => {
 };
 
 exports.deleteUser = async (ctx) => {
-  const UserCollection = ctx.db.collection("users");
+  // const UserCollection = ctx.db.collection("users");
   const { _id } = ctx.request.user;
 
   // const user = await UserCollection.findOneAndDelete({ _id });
@@ -151,25 +137,27 @@ exports.updatePassword = async (ctx) => {
   //   }
 
   const { _id } = ctx.request.user;
-  const UserCollection = ctx.db.collection("users");
+  // const UserCollection = ctx.db.collection("users");
 
   console.log("_id", _id);
 
   const { password } = ctx.request.body;
   const newHash = await hashPassword(password);
 
-  const user = await UserCollection.findOneAndUpdate(
+  // const user = await UserCollection.findOneAndUpdate(
+  const user = await updateUserData(
+    ctx.db,
     { _id },
-    { $set: { password: newHash } },
-    {
-      returnDocument: "after",
-      projection: {
-        password: 0,
-        resetPasswordExpires: 0,
-        resetPasswordToken: 0
-      }
-    }
+    { $set: { password: newHash } }
   );
+  // {
+  //   returnDocument: "after",
+  //   projection: {
+  //     password: 0,
+  //     resetPasswordExpires: 0,
+  //     resetPasswordToken: 0
+  //   }
+  // }
 
   if (!user) {
     ctx.status = 404;
