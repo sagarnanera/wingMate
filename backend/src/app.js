@@ -20,6 +20,7 @@ const bookingRouter = require("./routes/booking.route");
 const eventRouter = require("./routes/event.route");
 const postRouter = require("./routes/post.route");
 const commentRouter = require("./routes/comment.route");
+const likeRouter = require("./routes/like.route");
 
 // logger
 app.use(async (ctx, next) => {
@@ -42,6 +43,7 @@ app.use(bookingRouter.routes());
 app.use(eventRouter.routes());
 app.use(postRouter.routes());
 app.use(commentRouter.routes());
+app.use(likeRouter.routes());
 
 app.use(notFoundHandler);
 app.on("error", ErrorHandler);

@@ -1,10 +1,4 @@
 const KoaRouter = require("koa-router");
-const {
-  addComment,
-  getComments,
-  deleteComment,
-  updateComment
-} = require("../controllers/comment.controller");
 const authenticate = require("../middlewares/auth.middleware");
 const { AllRoles, ROLES } = require("../utils/constants");
 const staticValidate = require("../middlewares/staticValidate.middleware");
@@ -15,21 +9,24 @@ const {
 const dbValidate = require("../middlewares/dbValidate.middleware");
 const {
   postExistValidator,
-  commentExistValidator
+  commentExistValidator,
+  isLikedValidator
 } = require("../validators/db.validator");
 const {
   skipValidator,
   limitValidator
 } = require("../validators/common.validator");
 const { postIdValidator } = require("../validators/post.validator");
-const router = new KoaRouter({ prefix: "/api/v1/comment" });
+const { getLikes, addRemoveLike } = require("../controllers/like.controller");
+const { likeIdValidator } = require("../validators/like.validator");
+const router = new KoaRouter({ prefix: "/api/v1/like" });
 
 router.post(
   "/:postId",
   authenticate(AllRoles),
-  staticValidate([postIdValidator, commentIdValidator, contentValidator]),
-  dbValidate([postExistValidator, commentExistValidator]),
-  addComment
+  staticValidate([postIdValidator, commentIdValidator]),
+  dbValidate([postExistValidator, commentExistValidator, isLikedValidator]),
+  addRemoveLike
 );
 
 router.get(
@@ -37,26 +34,19 @@ router.get(
   authenticate(AllRoles),
   staticValidate([
     postIdValidator,
+    commentIdValidator,
     skipValidator,
-    limitValidator,
-    commentIdValidator
+    limitValidator
   ]),
-  dbValidate([postExistValidator]),
-  getComments
+  dbValidate([postExistValidator, commentExistValidator]),
+  getLikes
 );
 
-router.put(
-  "/:commentId",
-  authenticate(AllRoles),
-  staticValidate([commentIdValidator, contentValidator]),
-  updateComment
-);
-
-router.delete(
-  "/:commentId",
-  authenticate(AllRoles),
-  staticValidate([commentIdValidator]),
-  deleteComment
-);
+// router.delete(
+//   "/:likeId",
+//   authenticate(AllRoles),
+//   staticValidate([likeIdValidator]),
+//   deleteLike
+// );
 
 module.exports = router;

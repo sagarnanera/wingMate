@@ -233,16 +233,23 @@ exports.mediaValidator = (ctx) => {
 
 exports.postIdValidator = (ctx) => {
   const { method: requestMethod } = ctx.request;
-  let { postId, commentId } = ctx.params;
+  let { postId } = ctx.params;
 
-  if (commentId) {
-    return null;
-  }
+  // if (commentId) {
+  //   return null;
+  // }
 
-  if (requestMethod === "POST" && ctx.request.url.includes("comment")) {
-    console.log("includes comment", ctx.request.body);
-    postId = ctx.request.body.postId;
-  }
+  // if (
+  //   requestMethod === "POST" &&
+  //   (ctx.request.url.includes("comment") || ctx.request.url.includes("like"))
+  // ) {
+  //   console.log("includes comment or comment", ctx.request.body);
+  //   postId = ctx.request.body.postId;
+  // }
+
+  // if (!postId && ctx.request.url.includes("like")) {
+  //   return null;
+  // }
 
   if (!postId) {
     return { field: "postId", message: "postId is required" };

@@ -43,6 +43,13 @@ exports.commentIdValidator = (ctx) => {
     commentId = ctx.query?.commentId;
   }
 
+  if (
+    !commentId &&
+    (ctx.request.url.includes("like") || ctx.request.url.includes("comment"))
+  ) {
+    return null;
+  }
+
   if (!commentId && ctx.request.method !== "GET") {
     return { field: "commentId", message: "CommentId is required." };
   }

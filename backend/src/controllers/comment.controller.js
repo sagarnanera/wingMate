@@ -9,13 +9,13 @@ const {
 const { updatePostData } = require("../DB/post.db");
 
 exports.addComment = async (ctx) => {
-  const { content, postId, commentId } = ctx.request.body;
+  const { content, commentId } = ctx.request.body;
+  const { postId } = ctx.state;
 
   const { _id: userId } = ctx.request.user;
 
   const commentData = {
     userId,
-    postId,
     content,
     totalLikes: 0,
     totalReplies: 0,
@@ -24,6 +24,8 @@ exports.addComment = async (ctx) => {
 
   if (commentId) {
     commentData["commentId"] = commentId;
+  } else {
+    commentData["postId"] = postId;
   }
 
   // try {
@@ -80,10 +82,12 @@ exports.getComments = async (ctx) => {
   const { postId } = ctx.params;
   const { skip, limit, commentId } = ctx.query;
 
-  const searchQuery = { postId };
+  const searchQuery = {};
 
   if (commentId) {
     searchQuery["commentId"] = commentId;
+  } else {
+    searchQuery["postId"] = postId;
   }
 
   // to get the most recent comment
@@ -155,31 +159,28 @@ exports.deleteComment = async (ctx) => {
     return;
   }
 
+  const deletedComments = await deleteComments(ctx.db, {
+    $or: [{ _id }, { commentId: comment._id }]
+  });
+
+  console.log("deletedComments", deletedComments);
+  const { deletedCount } = deletedComments;
+  console.log("deletedComments", deletedCount, -deletedCount);
+
   await Promise.all([
-    await deleteComments(ctx.db, {
-      $or: [{ _id }, { commentId: comment._id }]
-    }),
-    await updatePostData(
+    updateCommentData(
+      ctx.db,
+      { _id: comment?.commentId },
+      { $inc: { totalReplies: -deletedCount } }
+    ),
+    updatePostData(
       ctx.db,
       { _id: comment?.postId },
       {
-        $inc: { totalComments: -1 }
+        $inc: { totalComments: -(deletedCount + 1) }
       }
-    ),
-    await updateCommentData(
-      ctx.db,
-      { _id: comment?.commentId },
-      { $inc: { totalReplies: -1 } }
     )
   ]);
-
-  // console.log("comments", comments);
-
-  // if (!comments) {
-  //   ctx.status = 404;
-  //   ctx.body = { success: false, message: "Comment details not found." };
-  //   return;
-  // }
 
   ctx.status = 200;
   ctx.body = {

@@ -82,7 +82,7 @@ exports.findPosts = async (db, searchQuery, skip, limit, sort) => {
     .sort(sort)
     .toArray();
 
-  // console.log(posts);
+  console.log(searchQuery, posts);
 
   return posts;
 };

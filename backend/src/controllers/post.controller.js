@@ -7,6 +7,7 @@ const {
   deletePostData
 } = require("../DB/post.db");
 const { updateTotalPostCount } = require("../DB/user.db");
+const { customError } = require("../handlers/error.handler");
 const {
   POST_TYPE,
   POST_CONTENT_TYPE,
@@ -68,10 +69,12 @@ exports.createPost = async (ctx) => {
 exports.getPosts = async (ctx) => {
   const { societyId, wingId } = ctx.request.user;
   const { feed, userId, skip, limit } = ctx.query;
+  // let { feed } = ctx.query;
+
+  // feed = feed || FEED_TYPE.SOCIETY;
 
   const searchQuery = {
-    societyId,
-    wingId
+    societyId
   };
 
   if (userId && userId !== "") {
@@ -80,6 +83,12 @@ exports.getPosts = async (ctx) => {
 
   if (feed === FEED_TYPE.WING) {
     searchQuery["feed"] = FEED_TYPE.WING;
+    searchQuery["wingId"] = wingId;
+  } else {
+    searchQuery["$or"] = [
+      { feed: FEED_TYPE.SOCIETY },
+      { feed: FEED_TYPE.WING, wingId }
+    ];
   }
 
   const sortFilter = {
@@ -99,13 +108,17 @@ exports.getPosts = async (ctx) => {
 };
 
 exports.getPost = async (ctx) => {
-  const { societyId } = ctx.request.user;
+  const { societyId, wingId } = ctx.request.user;
   const { postId } = ctx.params;
 
   const post = await findPost(ctx.db, {
     _id: postId,
     societyId
   });
+
+  if (post.feed === FEED_TYPE.WING && post.wingId !== wingId) {
+    throw new customError("Not allowed.", 403);
+  }
 
   if (!post) {
     ctx.status = 404;

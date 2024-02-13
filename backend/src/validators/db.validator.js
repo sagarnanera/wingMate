@@ -1,9 +1,11 @@
 const { findComments, findComment } = require("../DB/comment.db");
+const { findLike } = require("../DB/like.db");
 const { findPost } = require("../DB/post.db");
 const { findSociety } = require("../DB/society.db");
 const { findUser } = require("../DB/user.db");
 const { findWing } = require("../DB/wing.db");
 const { customError } = require("../handlers/error.handler");
+const { FEED_TYPE } = require("../utils/constants");
 
 exports.isEmailExistValidator = async (ctx) => {
   const { email } = ctx.request.body;
@@ -93,22 +95,45 @@ exports.wingExistValidator = async (ctx) => {
 
 exports.postExistValidator = async (ctx) => {
   let { postId } = ctx.state;
-  const { societyId } = ctx.request.user;
+  const { societyId, wingId } = ctx.request.user;
 
-  const result = await findPost(ctx.db, { _id: postId, societyId });
+  console.log("postId,", ctx.state);
 
-  if (!result) {
-    throw new customError("Post details not found.", 404);
+  const searchQuery = { societyId, _id: postId };
+
+  // if (
+  //   ctx.request.method !== "GET" &&
+  //   (ctx.request.url.includes("comment") || ctx.request.url.includes("like"))
+  // ) {
+  //   searchQuery["wingId"] = wingId;
+  // }
+
+  // if (ctx.request.method !== "GET") {
+  //   searchQuery["wingId"] = wingId;
+  // }
+
+  console.log("query", searchQuery);
+
+  if (postId) {
+    const result = await findPost(ctx.db, searchQuery);
+
+    if (!result) {
+      throw new customError("Post details not found.", 404);
+    }
+
+    if (result.feed === FEED_TYPE.WING && result.wingId !== wingId) {
+      throw new customError("Not allowed.", 403);
+    }
   }
 
   return null;
 };
 
 exports.commentExistValidator = async (ctx) => {
-  let { commentId, postId } = ctx.state;
+  let { commentId } = ctx.state;
 
   if (commentId) {
-    const result = await findComment(ctx.db, { _id: commentId, postId });
+    const result = await findComment(ctx.db, { _id: commentId });
 
     if (!result) {
       throw new customError("Comment details not found.", 404);
@@ -134,6 +159,28 @@ exports.isBookedValidator = async (ctx) => {
       400
     );
   }
+
+  return null;
+};
+
+exports.isLikedValidator = async (ctx) => {
+  const { _id: userId } = ctx.request.user;
+  const { postId } = ctx.params;
+  const { commentId } = ctx.request.body;
+
+  const searchQuery = { userId };
+
+  if (commentId) {
+    searchQuery["commentId"] = commentId;
+  } else {
+    searchQuery["postId"] = postId;
+  }
+
+  const isLiked = await findLike(ctx.db, searchQuery);
+
+  console.log("isLiked", isLiked, searchQuery);
+
+  ctx.request.body["isLiked"] = isLiked;
 
   return null;
 };
