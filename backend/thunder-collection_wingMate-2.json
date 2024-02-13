@@ -1,0 +1,92 @@
+{
+    "client": "Thunder Client",
+    "collectionName": "wingMate 2",
+    "dateExported": "2024-02-13T16:05:52.329Z",
+    "version": "1.1",
+    "folders": [
+        {
+            "_id": "045fd124-2b81-4d90-9a17-592cd286f79a",
+            "name": "like",
+            "containerId": "",
+            "created": "2024-02-12T10:44:48.004Z",
+            "sortNum": 48125
+        }
+    ],
+    "requests": [
+        {
+            "_id": "1cfa5695-892d-496f-9a45-a2007b591ea5",
+            "colId": "d03250e1-5e55-4e75-8353-cda3c8cafbd8",
+            "containerId": "045fd124-2b81-4d90-9a17-592cd286f79a",
+            "name": "get likes",
+            "url": "/like/ceaf5eaf-b90c-4504-90b3-a4b4263b9dc2",
+            "method": "GET",
+            "sortNum": 10000,
+            "created": "2024-02-12T10:44:48.006Z",
+            "modified": "2024-02-13T10:11:33.320Z",
+            "headers": [
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
+            "params": [
+                {
+                    "name": "commentId",
+                    "value": "913cbb09-26df-42bc-a182-cfe89dfa723c",
+                    "isDisabled": true,
+                    "isPath": false
+                }
+            ],
+            "tests": []
+        },
+        {
+            "_id": "0a860324-6fe0-4d02-b289-843addeea6a8",
+            "colId": "d03250e1-5e55-4e75-8353-cda3c8cafbd8",
+            "containerId": "045fd124-2b81-4d90-9a17-592cd286f79a",
+            "name": "add like",
+            "url": "/like/ceaf5eaf-b90c-4504-90b3-a4b4263b9dc2",
+            "method": "POST",
+            "sortNum": 12500,
+            "created": "2024-02-12T10:44:48.024Z",
+            "modified": "2024-02-13T10:11:41.869Z",
+            "headers": [
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n// \"commentId\":\"1af86905-a9ab-4c96-a57e-8d18261199f2\"\n}",
+                "form": []
+            },
+            "tests": [],
+            "docs": "sample request payload \n\n{\n  \"title\":\"post by secretory - text\",\n  \"contentType\":\"image\",\n  // \"text\":\"all pay maintainence fees\",\n  \"media\":[\"https://user-images.githubusercontent.com/image.png\"],\n  \"feed\":\"wing\"\n}\n\n\n\n\nsample response\n\n// {\n//       \"_id\": \"dc930b67-b53e-41f0-9d76-4550c03ef7ea\",\n//       \"userId\": \"b0cfddc2-ad0b-42b4-916b-8f61bae979d2\",\n//       \"societyId\": \"aafe46dc-0086-4d30-b0c0-d98621b64432\",\n//       \"title\": \"post by secretory - text\",\n//       \"postType\": \"normal post\",\n//       \"contentType\": \"image\",\n//       \"wingId\": \"9bf7df7f-776f-4e8f-9865-184492c6898e\",\n//       \"media\": [\n//         \"https://user-images.githubusercontent.com/14011726/94132137-7d4fc100-fe7c-11ea-8512-69f90cb65e48.jpg\"\n//       ]\n//     }"
+        }
+    ],
+    "settings": {
+        "headers": [
+            {
+                "name": "Cookie",
+                "value": "token={{AUTH_TOKEN}}"
+            }
+        ],
+        "options": {
+            "baseUrl": "http://localhost:8080/api/v1"
+        },
+        "envId": "59209883-af67-4629-9869-8f568e83dd6e"
+    }
+}
