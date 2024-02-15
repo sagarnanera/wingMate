@@ -15,6 +15,7 @@ const AllRoles = [
 const EVENT_STATUS = {
   PENDING: "pending approval",
   APPROVED: "approved",
+  REJECTED: "rejected",
   FINISHED: "finished"
 };
 

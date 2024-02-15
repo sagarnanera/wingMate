@@ -8,7 +8,10 @@ const {
 } = require("../DB/post.db");
 const { updateTotalPostCount } = require("../DB/user.db");
 const { customError } = require("../handlers/error.handler");
-const { postToFacebook } = require("../services/facebook.service");
+const {
+  postToFacebook,
+  deleteFacebookPost
+} = require("../services/facebook.service");
 const {
   POST_TYPE,
   POST_CONTENT_TYPE,
@@ -68,11 +71,13 @@ exports.createPost = async (ctx) => {
     )
   ]);
 
+  const fbPostUrl = `https://facebook.com/${postData.fbPostId}`;
+
   ctx.status = 200;
   ctx.body = {
     success: true,
     message: "Post added successfully!!!",
-    post
+    post: { ...post, fbPostUrl }
   };
 
   return;
@@ -109,12 +114,18 @@ exports.getPosts = async (ctx) => {
 
   const posts = await findPosts(ctx.db, searchQuery, skip, limit, sortFilter);
 
+  posts.forEach((post) => {
+    if (post.fbPostId) {
+      post["fbPostURL"] = `https://facebook.com/${post.fbPostId}`;
+    }
+  });
+
   ctx.status = 200;
   ctx.body = {
     success: true,
     message: "Posts fetched successfully!!!",
     totalPosts: posts.length,
-    posts
+    posts: posts
   };
   return;
 };
@@ -137,6 +148,8 @@ exports.getPost = async (ctx) => {
   if (post.feed === FEED_TYPE.WING && post.wingId !== wingId) {
     throw new customError("Not allowed.", 403);
   }
+
+  post["fbPostURL"] = `https://facebook.com/${post.fbPostId}`;
 
   ctx.status = 200;
   ctx.body = {
@@ -198,14 +211,14 @@ exports.updatePost = async (ctx) => {
 };
 
 exports.deletePost = async (ctx) => {
-  const { societyId, _id: userId, wingId } = ctx.request.user;
+  const { societyId, _id: userId } = ctx.request.user;
   const { postId: _id } = ctx.params;
 
   const post = await deletePostData(ctx.db, {
     _id,
     userId,
     societyId,
-    wingId
+    postType: POST_TYPE.NORMAL_POST
   });
 
   // const postPromise = deletePostData(ctx.db, {
@@ -231,16 +244,22 @@ exports.deletePost = async (ctx) => {
     return;
   }
 
-  await updateTotalPostCount(
-    ctx.db,
-    { _id: userId },
-    {
-      $inc: { totalPost: -1 }
-    }
-  );
+  const promiseArr = [
+    updateTotalPostCount(
+      ctx.db,
+      { _id: userId },
+      {
+        $inc: { totalPost: -1 }
+      }
+    ),
+    deleteComments(ctx.db, { postId: _id })
+  ];
 
-  // TODO : delete all the comments on this post
-  await deleteComments(ctx.db, { postId: _id });
+  if (post?.fbPostId) {
+    promiseArr.push(deleteFacebookPost(post?.fbPostId));
+  }
+
+  Promise.all(promiseArr);
 
   ctx.status = 200;
   ctx.body = {

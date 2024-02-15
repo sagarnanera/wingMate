@@ -163,9 +163,7 @@ exports.deleteComment = async (ctx) => {
     $or: [{ _id }, { commentId: comment._id }]
   });
 
-  console.log("deletedComments", deletedComments);
   const { deletedCount } = deletedComments;
-  console.log("deletedComments", deletedCount, -deletedCount);
 
   await Promise.all([
     updateCommentData(

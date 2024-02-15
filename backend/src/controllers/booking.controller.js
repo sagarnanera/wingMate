@@ -1,61 +1,31 @@
 const {
-  isBooked,
-  getUnbookedProperties,
-  unbookedProperties
+  unbookedProperties,
+  insertBooking,
+  findBooking,
+  findBookings,
+  updateBookingData,
+  deleteBookingData
 } = require("../DB/booking.db");
-const { getEvent } = require("../DB/event.db");
+const { updateEventData } = require("../DB/event.db");
 const { calculatePropertyRent } = require("../DB/property.db");
-const { PROPERTY_TYPE, BOOKING_TYPE, ROLES } = require("../utils/constants");
-const generateUUID = require("../utils/generateUUID");
+const { BOOKING_TYPE } = require("../utils/constants");
 
 exports.createBooking = async (ctx) => {
-  const BookingCollection = ctx.db.collection("bookings");
-
   const { _id: userId, societyId } = ctx.request.user;
   const {
     propertyIds,
     requestedDateRange,
     reason,
     createdOn = new Date()
-    // bookingType,
-    // eventId
   } = ctx.request.body;
 
-  // checking availability for the requested properties
-  // const requestedDateRange = {
-  //   startDate: new Date(new Date(startDate).setHours(0, 0, 0)),
-  //   endDate: new Date(new Date(endDate).setHours(0, 0, 0))
-  // };
-
-  // const booked = await isBooked(
-  //   ctx.db,
-  //   societyId,
-  //   propertyIds,
-  //   requestedDateRange
-  // );
-
-  // console.log("isBooked", booked);
-
-  // if (booked) {
-  //   ctx.status = 400;
-  //   ctx.body = {
-  //     success: false,
-  //     message:
-  //       "Requested properties are already booked, Please chose other available dates!!!"
-  //   };
-  //   return;
-  // }
-
-  // actual booking starts from here
   const [{ totalAmount }] = await calculatePropertyRent(
     ctx.db,
     propertyIds,
     requestedDateRange
   );
 
-  const _id = generateUUID();
   const bookingData = {
-    _id,
     userId,
     societyId,
     propertyIds,
@@ -66,26 +36,9 @@ exports.createBooking = async (ctx) => {
     createdOn
   };
 
-  // if (bookingType === BOOKING_TYPE.EVENT) {
-  //   const isValid = await getEvent(ctx.db, {
-  //     _id: eventId,
-  //     startDate: requestedDateRange.startDate,
-  //     endDate: requestedDateRange.endDate
-  //   });
-  //   if (!isValid) {
-  //     ctx.status = 400;
-  //     ctx.body = {
-  //       success: false,
-  //       message: "Event not found!!!"
-  //     };
-  //     return;
-  //   }
+  console.log("booking data in ctrl:", bookingData);
 
-  //   bookingData["eventId"] = eventId;
-  //   bookingData["bookingType"] = BOOKING_TYPE.EVENT;
-  // }
-
-  const booking = await BookingCollection.insertOne(bookingData);
+  const booking = await insertBooking(ctx.db, bookingData);
 
   if (!booking) {
     ctx.status = 400;
@@ -100,18 +53,18 @@ exports.createBooking = async (ctx) => {
   ctx.body = {
     success: true,
     message: "Booked properties successfully!!!",
-    bookingDetails: bookingData
+    bookingDetails: booking
   };
   return;
 };
 
 exports.getBooking = async (ctx) => {
-  const BookingCollection = ctx.db.collection("bookings");
-
   const { _id: userId } = ctx.request.user;
   const { bookingId } = ctx.params;
 
-  const booking = await BookingCollection.findOne({ _id: bookingId, userId });
+  const booking = await findBooking(ctx.db, { _id: bookingId, userId });
+
+  console.log("booking ,", bookingId, booking, userId);
 
   if (!booking) {
     ctx.status = 404;
@@ -129,8 +82,6 @@ exports.getBooking = async (ctx) => {
 };
 
 exports.getBookings = async (ctx) => {
-  const BookingCollection = ctx.db.collection("bookings");
-
   const { wingId, societyId, _id, role } = ctx.request.user;
   const { propertyType, bookingType } = ctx.query;
 
@@ -150,11 +101,13 @@ exports.getBookings = async (ctx) => {
   // if (bookingType && bookingType === BOOKING_TYPE.EVENT) {
   //   query["bookingType"] = BOOKING_TYPE.EVENT;
   // }
+
   // if (bookingType && bookingType === BOOKING_TYPE.PERSONAL) {
   //   query["bookingType"] = BOOKING_TYPE.PERSONAL;
   // }
 
-  const bookings = await BookingCollection.find(query).toArray();
+  // const bookings = await BookingCollection.find(query).toArray();
+  const bookings = await findBookings(ctx.db, query);
 
   ctx.status = 200;
   ctx.body = {
@@ -166,19 +119,21 @@ exports.getBookings = async (ctx) => {
 };
 
 exports.updateBooking = async (ctx) => {
-  const BookingCollection = ctx.db.collection("bookings");
-
   const { _id: userId } = ctx.request.user;
-  const { _id, ...restBookingData } = ctx.request.body;
+  const { requestedDateRange } = ctx.request.body;
+  const { bookingId: _id } = ctx.params;
+  const { propertyIds } = ctx.state?.booking;
 
-  console.log("booking before update:", restBookingData);
+  const [{ totalAmount }] = await calculatePropertyRent(
+    ctx.db,
+    propertyIds,
+    requestedDateRange
+  );
 
-  const booking = await BookingCollection.findOneAndUpdate(
-    { _id, userId },
-    {
-      $set: restBookingData
-    },
-    { returnDocument: "after" }
+  const booking = await updateBookingData(
+    ctx.db,
+    { _id, userId, bookingType: BOOKING_TYPE.PERSONAL },
+    { ...requestedDateRange, totalRent: totalAmount }
   );
 
   console.log("booking after update:", booking);
@@ -199,16 +154,23 @@ exports.updateBooking = async (ctx) => {
 };
 
 exports.deleteBooking = async (ctx) => {
-  const BookingCollection = ctx.db.collection("bookings");
   const { bookingId: _id } = ctx.params;
   const { _id: userId } = ctx.request.user;
 
   console.log("booking in delete:", _id, userId);
-  const booking = await BookingCollection.findOneAndDelete({ _id, userId });
+  const booking = await deleteBookingData(ctx.db, {
+    _id,
+    userId,
+    bookingType: BOOKING_TYPE.PERSONAL
+  });
 
   if (!booking) {
     ctx.status = 404;
-    ctx.body = { success: false, message: "Booking details not found." };
+    ctx.body = {
+      success: false,
+      message:
+        "Booking details not found or booking is event booking which can't be deleted directly."
+    };
     return;
   }
 

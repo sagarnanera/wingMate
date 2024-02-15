@@ -1,12 +1,14 @@
-const { isBooked } = require("../DB/booking.db");
+const { isBooked, findBooking } = require("../DB/booking.db");
 const { findComments, findComment } = require("../DB/comment.db");
+const { findEvent } = require("../DB/event.db");
 const { findLike } = require("../DB/like.db");
 const { findPost } = require("../DB/post.db");
+const { findProperties } = require("../DB/property.db");
 const { findSociety } = require("../DB/society.db");
 const { findUser } = require("../DB/user.db");
 const { findWing } = require("../DB/wing.db");
 const { customError } = require("../handlers/error.handler");
-const { FEED_TYPE } = require("../utils/constants");
+const { FEED_TYPE, BOOKING_TYPE } = require("../utils/constants");
 
 exports.isEmailExistValidator = async (ctx) => {
   const { email } = ctx.request.body;
@@ -66,11 +68,10 @@ exports.isUserValidValidator = async (ctx) => {
 };
 
 exports.societyExistValidator = async (ctx) => {
-  const { societyId, _id } = ctx.request.user;
+  const { societyId } = ctx.request.user;
 
   const result = await findSociety(ctx.db, {
-    _id: societyId,
-    secretoryId: _id
+    _id: societyId
   });
 
   if (!result) {
@@ -152,7 +153,27 @@ exports.commentExistValidator = async (ctx) => {
 
 exports.isBookedValidator = async (ctx) => {
   const { requestedDateRange } = ctx.request.body;
+  let { propertyIds } = ctx.request.body;
   const { societyId } = ctx.request.user;
+
+  if (ctx.request.method === "PUT") {
+    console.log("here in if");
+    const { startDate, endDate } = ctx.state?.booking;
+    propertyIds = ctx.state?.booking?.propertyIds;
+
+    console.log(startDate, endDate, requestedDateRange);
+    if (
+      new Date(requestedDateRange.startDate).getTime() ===
+        new Date(startDate).getTime() &&
+      new Date(requestedDateRange.endDate).getTime() ===
+        new Date(endDate).getTime()
+    ) {
+      throw new customError(
+        "Provide different dates from previously booked dates!!!",
+        400
+      );
+    }
+  }
 
   const booked = await isBooked(
     ctx.db,
@@ -161,14 +182,50 @@ exports.isBookedValidator = async (ctx) => {
     requestedDateRange
   );
 
-  console.log("isBooked", booked);
-
   if (booked) {
     throw new customError(
       "Requested properties are already booked, Please chose other available dates!!!",
       400
     );
   }
+
+  return null;
+};
+
+exports.isBookingExistValidator = async (ctx) => {
+  const { _id: userId } = ctx.request.user;
+
+  const { bookingId } = ctx.params;
+
+  const booking = await findBooking(ctx.db, { _id: bookingId, userId });
+
+  if (!booking) {
+    throw new customError("Booking details not found!!!", 400);
+  }
+
+  if (booking.bookingType === BOOKING_TYPE.EVENT) {
+    throw new customError("can't update event bookings!!!", 403);
+  }
+
+  ctx.state.booking = booking;
+
+  return null;
+};
+
+exports.isEventExistValidator = async (ctx) => {
+  const { _id: userId } = ctx.request.user;
+
+  const { eventId } = ctx.params;
+
+  const event = await findEvent(ctx.db, { _id: eventId, userId });
+
+  // const booking = await findBooking(ctx.db, { eventId, userId });
+
+  if (!event) {
+    throw new customError("Event details not found!!!", 400);
+  }
+
+  ctx.state.booking = event;
 
   return null;
 };
@@ -191,6 +248,32 @@ exports.isLikedValidator = async (ctx) => {
   console.log("isLiked", isLiked, searchQuery);
 
   ctx.request.body["isLiked"] = isLiked;
+
+  return null;
+};
+
+exports.propertiesExistValidator = async (ctx) => {
+  let { propertyIds } = ctx.request.body;
+  const { societyId, wingId } = ctx.request.user;
+
+  const searchQuery = { societyId, _id: { $in: propertyIds } };
+
+  // console.log("query", searchQuery);
+
+  if (propertyIds) {
+    const results = await findProperties(ctx.db, searchQuery);
+
+    if (!results || results.length !== propertyIds.length) {
+      throw new customError("Properties details not found.", 404);
+    }
+
+    // Check if the properties belong to the user's wing (if applicable)
+    // for (const result of results) {
+    //   if (result.wingId && result.wingId !== wingId) {
+    //     throw new customError(`Property ${result.name} doesn't belong to your wing.`, 403);
+    //   }
+    // }
+  }
 
   return null;
 };

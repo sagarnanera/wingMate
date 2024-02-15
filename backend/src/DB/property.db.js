@@ -7,7 +7,11 @@ exports.insertProperty = async (db, propertyData) => {
 
   const property = await PropertyCollection.insertOne({ _id, ...propertyData });
 
-  return { _id, ...propertyData };
+  if (property) {
+    return { _id, ...propertyData };
+  }
+
+  return null;
 };
 
 exports.findProperty = async (db, searchQuery) => {
@@ -15,7 +19,7 @@ exports.findProperty = async (db, searchQuery) => {
 
   const property = await PropertyCollection.findOne(searchQuery);
 
-  console.log(property);
+  // console.log(property);
 
   return property;
 };
@@ -25,7 +29,7 @@ exports.findProperties = async (db, searchQuery) => {
 
   const properties = await PropertyCollection.find(searchQuery).toArray();
 
-  console.log(properties);
+  // console.log(properties);
 
   return properties;
 };
@@ -49,7 +53,7 @@ exports.deletePropertyData = async (db, searchQuery) => {
 
   const property = await PropertyCollection.findOneAndDelete(searchQuery);
 
-  console.log(property);
+  // console.log(property);
 
   return property;
 };
@@ -93,9 +97,14 @@ exports.calculatePropertyRent = async (db, propertyIds, requestedDateRange) => {
                 $ceil: {
                   $divide: [
                     {
-                      $subtract: [
-                        requestedDateRange.endDate,
-                        requestedDateRange.startDate
+                      $add: [
+                        {
+                          $subtract: [
+                            requestedDateRange.endDate,
+                            requestedDateRange.startDate
+                          ]
+                        },
+                        24 * 60 * 60 * 1000 // Add one day in milliseconds
                       ]
                     },
                     24 * 60 * 60 * 1000 // Convert milliseconds to days
@@ -107,7 +116,8 @@ exports.calculatePropertyRent = async (db, propertyIds, requestedDateRange) => {
           }
         }
       }
-    }
+    },
+    { $project: { _id: 0 } }
   ];
 
   const totalPayableAmount = await PropertyCollection.aggregate(

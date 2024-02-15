@@ -5,11 +5,11 @@ exports.insertSociety = async (db, societyData) => {
   const _id = generateUUID();
   const society = await SocietyCollection.insertOne({ _id, ...societyData });
 
-  //   if (society) {
-  return { _id, ...societyData };
-  //   }
+  if (society) {
+    return { _id, ...societyData };
+  }
 
-  //   return null;
+  return null;
 };
 
 exports.findSociety = async (db, searchQuery) => {
@@ -44,4 +44,10 @@ exports.deleteSocietyData = async (db, searchQuery) => {
   console.log(society);
 
   return society;
+};
+
+exports.updateSocietyAnalytics = async (db, searchQuery, updateQuery) => {
+  const SocietyCollection = db.collection("societies");
+
+  SocietyCollection.updateOne(searchQuery, updateQuery);
 };

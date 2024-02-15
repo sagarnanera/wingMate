@@ -1,4 +1,5 @@
 const joi = require("joi");
+const { ROLES } = require("../utils/constants");
 
 exports.emailValidator = (ctx) => {
   let { email } = ctx.request.body;
@@ -121,6 +122,31 @@ exports.userIdValidator = (ctx) => {
     const { error } = joi.string().uuid().required().validate(userId);
     if (error) {
       return { field: "userId", message: "User ID must be a valid UUID" };
+    }
+  }
+
+  return null;
+};
+
+exports.userRoleValidator = (ctx) => {
+  const { role } = ctx.params;
+
+  if (!role) {
+    return { field: "role", message: "role is required" };
+  }
+
+  if (role) {
+    const { error } = joi
+      .string()
+      .valid(...Object.values(ROLES))
+      .required()
+      .validate(role);
+
+    if (error) {
+      return {
+        field: "role",
+        message: `Role must be one of the ${Object.values(ROLES)}`
+      };
     }
   }
 

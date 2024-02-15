@@ -66,23 +66,65 @@ exports.insertPost = async (db, postData) => {
 exports.findPost = async (db, searchQuery) => {
   const PostCollection = db.collection("posts");
 
-  const post = await PostCollection.findOne(searchQuery);
+  // const post = await PostCollection.findOne(searchQuery);
 
-  // console.log(post);
+  // which approach is better finding user details in second query
+  // or doing aggregation
 
-  return post;
+  const post = await PostCollection.aggregate([
+    { $match: searchQuery },
+    {
+      $lookup: {
+        from: "users",
+        let: { userId: "$userId" },
+        // localField: "userId",
+        // foreignField: "_id",
+        pipeline: [
+          { $match: { $expr: { $eq: ["$$userId", "$_id"] } } },
+          { $project: { _id: 0, name: 1, role: 1 } }
+        ],
+        as: "user"
+      } // will return array
+    },
+    { $unwind: "$user" }
+  ]).toArray();
+
+  console.log(post);
+
+  return post[0];
 };
 
 exports.findPosts = async (db, searchQuery, skip, limit, sort) => {
   const PostCollection = db.collection("posts");
 
-  const posts = await PostCollection.find(searchQuery)
-    .skip(skip)
-    .limit(limit)
-    .sort(sort)
-    .toArray();
+  // const posts = await PostCollection.find(searchQuery)
+  //   .skip(skip)
+  //   .limit(limit)
+  //   .sort(sort)
+  //   .toArray();
 
-  console.log(searchQuery, posts);
+  // console.log(searchQuery, posts);
+
+  const posts = await PostCollection.aggregate([
+    { $match: searchQuery },
+    { $skip: skip },
+    { $limit: limit },
+    { $sort: sort },
+    {
+      $lookup: {
+        from: "users",
+        let: { userId: "$userId" },
+        // localField: "userId",
+        // foreignField: "_id",
+        pipeline: [
+          { $match: { $expr: { $eq: ["$$userId", "$_id"] } } },
+          { $project: { _id: 0, name: 1, role: 1 } }
+        ],
+        as: "user"
+      } // will return array
+    },
+    { $unwind: "$user" }
+  ]).toArray();
 
   return posts;
 };

@@ -9,13 +9,19 @@ const FACEBOOK_BASE_URL = process.env.FACEBOOK_BASE_URL;
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 const FACEBOOK_PAGE_TOKEN = process.env.FACEBOOK_PAGE_TOKEN;
 
+/**
+ *
+ * @param {*} postData
+ * @returns
+ */
+
 exports.postToFacebook = async (postData) => {
   const { title, text, media, contentType } = postData;
   const facebookPostData = {};
 
   if (contentType === POST_CONTENT_TYPE.TEXT) {
     facebookPostData["message"] = `${title} \n ${text}`;
-  } else if (contentType === POST_CONTENT_TYPE.TEXT) {
+  } else if (contentType === POST_CONTENT_TYPE.VIDEO) {
     facebookPostData["description"] = title;
     facebookPostData["file_url"] = media[0];
   } else {
@@ -54,31 +60,31 @@ exports.postToFacebook = async (postData) => {
   }
 };
 
-// exports.deleteFacebookPost = async (dbClient, facebookPostIds) => {
-//   // console.log("delete post");
+/**
+ *
+ * @param {*} postId
+ * @returns
+ */
+exports.deleteFacebookPost = async (postId) => {
+  const url = `${FACEBOOK_BASE_URL}/${postId}?access_token=${FACEBOOK_PAGE_TOKEN}`;
 
-//   const { pages } = await findUser(dbClient, { name: userName });
+  try {
+    const res = await fetch(url, {
+      method: "DELETE"
+    });
+    const response = await res.json();
 
-//   return Promise.map(facebookPostIds, async (postId) => {
-//     try {
-//       const res = await fetch(
-//         `${FACEBOOK_BASE_URL}/${postId}?access_token=${access_token}`,
-//         {
-//           method: "DELETE"
-//         }
-//       );
+    console.log("fb post deletion : ", postId, response);
 
-//       const postId = await res.json();
-
-//       console.log(postId);
-
-//       return postId;
-//     } catch (error) {
-//       console.error(`Error while creating post :`, error);
-//       throw error;
-//     }
-//   });
-// };
+    if (!response.success) {
+      console.error("Error while deleting post Facebook:", errorResponse);
+      throw new Error("Failed to delete post on Facebook");
+    }
+  } catch (error) {
+    console.error(`Error while deleting post :`, error);
+    throw error;
+  }
+};
 
 // exports.getPageAccessTokens = (pageIds, userAccessToken) => {
 //   return Promise.map(pageIds, async (pageId) => {

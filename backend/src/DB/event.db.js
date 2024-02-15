@@ -6,7 +6,11 @@ exports.insertEvent = async (db, eventData) => {
   const _id = generateUUID();
   const event = await EventCollection.insertOne({ _id, ...eventData });
 
-  return { _id, ...eventData };
+  if (event) {
+    return { _id, ...eventData };
+  }
+
+  return null;
 };
 
 exports.findEvent = async (db, searchQuery) => {

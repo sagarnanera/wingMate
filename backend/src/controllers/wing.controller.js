@@ -1,3 +1,4 @@
+const { updateSocietyAnalytics } = require("../DB/society.db");
 const { updateUserData } = require("../DB/user.db");
 const {
   insertWing,
@@ -38,6 +39,14 @@ exports.addWing = async (ctx) => {
     wingAdminId,
     ...restWingData
   });
+
+  await updateSocietyAnalytics(
+    ctx.db,
+    { _id: societyId },
+    {
+      $inc: { totalWings: 1 }
+    }
+  );
 
   ctx.status = 200;
   ctx.body = {
@@ -148,6 +157,14 @@ exports.deleteWingDetails = async (ctx) => {
     ctx.body = { success: false, message: "Wing details not found." };
     return;
   }
+
+  await updateSocietyAnalytics(
+    ctx.db,
+    { _id: societyId },
+    {
+      $inc: { totalWings: -1 }
+    }
+  );
 
   ctx.status = 200;
   ctx.body = { success: true, message: "Wing details deleted successfully." };

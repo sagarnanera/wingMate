@@ -1,35 +1,10 @@
-const { BOOKING_TYPE } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
-const { getEvent } = require("./event.db");
 
-exports.insertBooking = async (
-  db,
-  {
-    userId,
-    propertyIds,
-    societyId,
-    reason,
-    bookingType,
-    totalRent,
-    requestedDateRange
-  }
-) => {
+exports.insertBooking = async (db, bookingData) => {
   const BookingCollection = db.collection("bookings");
 
   const _id = generateUUID();
-  const bookingData = {
-    _id,
-    userId,
-    societyId,
-    propertyIds,
-    reason,
-    bookingType,
-    totalRent,
-    ...requestedDateRange,
-    createdOn
-  };
-
-  const booking = await BookingCollection.insertOne(bookingData);
+  const booking = await BookingCollection.insertOne({ _id, ...bookingData });
 
   if (booking) {
     return { _id, ...bookingData };
@@ -64,38 +39,20 @@ exports.isBooked = async (db, societyId, propertyIds, requestedDateRange) => {
     ]
   });
 
-  if (result) {
-    return true;
-  }
+  // if (result) {
+  //   return true;
+  // }
 
-  return false;
+  // return false;
+  console.log("isbooked res:", result);
+
+  return result;
 };
 
 exports.unbookedProperties = async (db, societyId, requestedDateRange) => {
   const PropertyCollection = db.collection("properties");
 
-  // const result = await BookingCollection.findOne({
-  //   societyId,
-  //   propertyIds: { $in: propertyIds },
-  //   $nor: [
-  //     {
-  //       startDate: { $lt: requestedDateRange.endDate },
-  //       endDate: { $gt: requestedDateRange.startDate }
-  //     },
-  //     {
-  //       startDate: {
-  //         $gte: requestedDateRange.startDate,
-  //         $lt: requestedDateRange.endDate
-  //       }
-  //     },
-  //     {
-  //       endDate: {
-  //         $gt: requestedDateRange.startDate,
-  //         $lte: requestedDateRange.endDate
-  //       }
-  //     }
-  //   ]
-  // });
+  console.log("date range in unbooked :", requestedDateRange);
 
   const unbookedProperties = await PropertyCollection.aggregate([
     {
@@ -147,6 +104,11 @@ exports.unbookedProperties = async (db, societyId, requestedDateRange) => {
       $match: {
         bookings: { $eq: [] }
       }
+    },
+    {
+      $project: {
+        bookings: 0
+      }
     }
   ]).toArray();
   console.log(unbookedProperties);
@@ -154,7 +116,13 @@ exports.unbookedProperties = async (db, societyId, requestedDateRange) => {
   return unbookedProperties;
 };
 
-exports.getBookings = async (db, searchQuery) => {
+/**
+ *
+ * @param {*} db
+ * @param {*} searchQuery
+ * @returns
+ */
+exports.findBookings = async (db, searchQuery) => {
   const BookingCollection = db.collection("bookings");
 
   const bookings = await BookingCollection.find(searchQuery).toArray();
@@ -162,10 +130,47 @@ exports.getBookings = async (db, searchQuery) => {
   return bookings;
 };
 
-exports.getBookingById = async (db, { bookingId, userId }) => {
+exports.findBooking = async (db, searchQuery) => {
   const BookingCollection = db.collection("bookings");
 
-  const booking = await BookingCollection.findOne({ _id: bookingId, userId });
+  const booking = await BookingCollection.findOne(searchQuery);
+
+  return booking;
+};
+
+/**
+ *
+ * @param {*} db
+ * @param {*} searchQuery
+ * @param {*} dataToUpdate
+ * @returns
+ */
+exports.updateBookingData = async (db, searchQuery, dataToUpdate) => {
+  const BookingCollection = db.collection("bookings");
+
+  const booking = await BookingCollection.findOneAndUpdate(
+    searchQuery,
+    {
+      $set: dataToUpdate
+    },
+    { returnDocument: "after" }
+  );
+
+  return booking;
+};
+
+/**
+ *
+ * @param {*} db
+ * @param {*} searchQuery
+ * @returns
+ */
+exports.deleteBookingData = async (db, searchQuery) => {
+  const BookingCollection = db.collection("bookings");
+
+  const booking = await BookingCollection.findOneAndDelete(searchQuery);
+
+  console.log(booking);
 
   return booking;
 };

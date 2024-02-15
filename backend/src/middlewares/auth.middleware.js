@@ -16,7 +16,7 @@ const authenticate = (authenticatedRoles) => {
 
     const user = await findUser(ctx.db, { _id });
 
-    console.log(user);
+    // console.log(user);
 
     if (!user) {
       throw new customError("User not found.", 401);

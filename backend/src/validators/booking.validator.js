@@ -21,13 +21,14 @@ exports.propertyIdsValidator = (ctx) => {
   const { error } = joi
     .array()
     .items(joi.string().uuid().required())
+    .unique()
     .required()
     .validate(propertyIds);
 
   if (error) {
     return {
       field: "propertyIds",
-      message: "PropertyIds should be an array of non-empty strings"
+      message: "PropertyIds should be an array of non-empty unique UUIDs."
     };
   }
 
@@ -35,28 +36,39 @@ exports.propertyIdsValidator = (ctx) => {
 };
 
 exports.startDateValidator = (ctx) => {
-  const { startDate } = ctx.request.body;
+  let { startDate } = ctx.request.body;
+
+  if (ctx.request.method === "GET") {
+    startDate = ctx.query.startDate;
+  }
 
   if (!startDate) {
     return { field: "startDate", message: "Start date is required" };
   }
 
-  const { error } = joi.date().iso().required().validate(startDate);
+  const { error } = joi.date().iso().min("now").required().validate(startDate);
 
   if (error) {
     return { field: "startDate", message: "Invalid start date format" };
   }
 
-  //   ctx.request.body.startDate = startDate;
-
   return null;
 };
 
 exports.endDateValidator = (ctx) => {
-  const { endDate, startDate } = ctx.request.body;
+  let { endDate, startDate } = ctx.request.body;
+
+  if (ctx.request.method === "GET") {
+    endDate = ctx.query.endDate;
+    startDate = ctx.query.startDate;
+  }
 
   if (!endDate) {
     return { field: "endDate", message: "End date is required" };
+  }
+
+  if (joi.date().iso().validate(startDate).error) {
+    return null;
   }
 
   const { error } = joi
@@ -123,22 +135,20 @@ exports.reasonValidator = (ctx) => {
 //   return null;
 // };
 
-exports.eventIdValidator = (ctx) => {
-  const { eventId } = ctx.request.body;
+exports.bookingIdValidator = (ctx) => {
+  const { bookingId } = ctx.params;
 
-  if (!eventId) {
-    return { field: "eventId", message: "Event ID is required" };
+  if (!bookingId) {
+    return { field: "bookingId", message: "Booking ID is required" };
   }
 
-  if (eventId) {
-    const { error } = joi.string().uuid().required().validate(eventId);
+  if (bookingId) {
+    const { error } = joi.string().uuid().required().validate(bookingId);
 
     if (error) {
-      return { field: "eventId", message: "Event ID must be a valid UUID" };
+      return { field: "bookingId", message: "Booking ID must be a valid UUID" };
     }
   }
-
-  //   ctx.request.body.eventId = eventId.trim();
 
   return null;
 };

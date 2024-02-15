@@ -17,6 +17,11 @@ const {
 } = require("../validators/society.validator");
 const dbValidate = require("../middlewares/dbValidate.middleware");
 const { wingExistValidator } = require("../validators/db.validator");
+const {
+  rentValidator,
+  propertyIdValidator
+} = require("../validators/property.validator");
+const { propertyIdsValidator } = require("../validators/booking.validator");
 const router = new KoaRouter({ prefix: "/api/v1/property" });
 
 router.post(
@@ -24,27 +29,42 @@ router.post(
   authenticate([ROLES.SECRETORY]),
   staticValidate([
     nameValidator,
-    wingIdValidator,
     locationValidator,
-    areaValidator
+    areaValidator,
+    wingIdValidator,
+    rentValidator
   ]),
   dbValidate([wingExistValidator]),
   addProperty
 );
 router.get("/", authenticate(AllRoles), getProperties);
-router.get("/:propertyId", authenticate(AllRoles), getProperty);
+
+router.get(
+  "/:propertyId",
+  authenticate(AllRoles),
+  staticValidate([propertyIdValidator]),
+  getProperty
+);
+
 router.put(
   "/:propertyId",
   authenticate([ROLES.SECRETORY]),
   staticValidate([
+    propertyIdValidator,
     nameValidator,
     locationValidator,
     areaValidator,
-    wingIdValidator
+    wingIdValidator,
+    rentValidator
   ]),
   dbValidate([wingExistValidator]),
   updateProperty
 );
-router.delete("/:propertyId", authenticate([ROLES.SECRETORY]), deleteProperty);
+router.delete(
+  "/:propertyId",
+  authenticate([ROLES.SECRETORY]),
+  staticValidate([propertyIdValidator]),
+  deleteProperty
+);
 
 module.exports = router;

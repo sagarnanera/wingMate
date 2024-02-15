@@ -9,14 +9,19 @@ const {
 } = require("../controllers/booking.controller");
 const authenticate = require("../middlewares/auth.middleware");
 const { AllRoles, ROLES } = require("../utils/constants");
-const { isBookedValidator } = require("../validators/db.validator");
+const {
+  isBookedValidator,
+  propertiesExistValidator,
+  isBookingExistValidator
+} = require("../validators/db.validator");
 const staticValidate = require("../middlewares/staticValidate.middleware");
 const dbValidate = require("../middlewares/dbValidate.middleware");
 const {
   propertyIdsValidator,
   startDateValidator,
   endDateValidator,
-  reasonValidator
+  reasonValidator,
+  bookingIdValidator
 } = require("../validators/booking.validator");
 const router = new KoaRouter({ prefix: "/api/v1/booking" });
 
@@ -29,13 +34,39 @@ router.post(
     startDateValidator,
     endDateValidator
   ]),
-  dbValidate([isBookedValidator]),
+  dbValidate([propertiesExistValidator, isBookedValidator]),
   createBooking
 );
+
 router.get("/", authenticate(AllRoles), getBookings);
-router.get("/unbooked", authenticate(AllRoles), getUnbookedProperties);
-router.get("/:bookingId", authenticate(AllRoles), getBooking);
-router.put("/:bookingId", authenticate(AllRoles), updateBooking);
-router.delete("/:bookingId", authenticate(AllRoles), deleteBooking);
+
+router.get(
+  "/unbooked",
+  authenticate(AllRoles),
+  staticValidate([startDateValidator, endDateValidator]),
+  getUnbookedProperties
+);
+
+router.get(
+  "/:bookingId",
+  authenticate(AllRoles),
+  staticValidate([bookingIdValidator]),
+  getBooking
+);
+
+router.put(
+  "/:bookingId",
+  authenticate(AllRoles),
+  staticValidate([bookingIdValidator, startDateValidator, endDateValidator]),
+  dbValidate([isBookingExistValidator, isBookedValidator]),
+  updateBooking
+);
+
+router.delete(
+  "/:bookingId",
+  authenticate(AllRoles),
+  staticValidate([bookingIdValidator]),
+  deleteBooking
+);
 
 module.exports = router;
