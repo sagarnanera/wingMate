@@ -8,6 +8,7 @@ const {
 } = require("../DB/post.db");
 const { updateTotalPostCount } = require("../DB/user.db");
 const { customError } = require("../handlers/error.handler");
+const { responseHandler } = require("../handlers/response.handler");
 const {
   postToFacebook,
   deleteFacebookPost
@@ -73,12 +74,16 @@ exports.createPost = async (ctx) => {
 
   const fbPostUrl = `https://facebook.com/${postData.fbPostId}`;
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Post added successfully!!!",
-    post: { ...post, fbPostUrl }
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Post added successfully!!!",
+    201,
+    {
+      post: { ...post, fbPostUrl }
+    },
+    "post added :"
+  );
 
   return;
 };
@@ -120,13 +125,17 @@ exports.getPosts = async (ctx) => {
     }
   });
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Posts fetched successfully!!!",
-    totalPosts: posts.length,
-    posts: posts
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Posts fetched successfully!!!",
+    200,
+    {
+      totalPosts: posts.length,
+      posts
+    },
+    "posts fetched :"
+  );
   return;
 };
 
@@ -140,8 +149,14 @@ exports.getPost = async (ctx) => {
   });
 
   if (!post) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "post not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Post not found.",
+      404,
+      null,
+      "post not found."
+    );
     return;
   }
 
@@ -151,12 +166,16 @@ exports.getPost = async (ctx) => {
 
   post["fbPostURL"] = `https://facebook.com/${post.fbPostId}`;
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Post fetched successfully!!!",
-    post
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Post fetched successfully!!!",
+    200,
+    {
+      post
+    },
+    "post fetched :"
+  );
   return;
 };
 
@@ -185,7 +204,6 @@ exports.updatePost = async (ctx) => {
   }
 
   updateQuery.$set = postData;
-  console.log("postData before update:", postData, updateQuery);
 
   const post = await updatePostData(
     ctx.db,
@@ -193,20 +211,30 @@ exports.updatePost = async (ctx) => {
     updateQuery
   );
 
-  console.log("post after update:", post);
-
   if (!post) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Post not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Post not found.",
+      404,
+      null,
+      "post not found in update post."
+    );
+
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Post details updated successfully!!!",
-    post
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Post details updated successfully!!!",
+    200,
+    {
+      post
+    },
+    "post updated :"
+  );
+
   return;
 };
 
@@ -239,8 +267,15 @@ exports.deletePost = async (ctx) => {
   // ]);
 
   if (!post) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Post details not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Post not found.",
+      404,
+      null,
+      "post not found in delete post."
+    );
+
     return;
   }
 
@@ -260,11 +295,13 @@ exports.deletePost = async (ctx) => {
   }
 
   Promise.all(promiseArr);
-
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Post details deleted successfully."
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Post details deleted successfully.",
+    200,
+    null,
+    "post deleted."
+  );
   return;
 };

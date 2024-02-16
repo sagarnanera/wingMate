@@ -1,5 +1,6 @@
 const { JsonWebTokenError, TokenExpiredError } = require("jsonwebtoken");
 const { MongoServerError } = require("mongodb");
+const { responseHandler } = require("./response.handler");
 
 // custom error
 class customError extends Error {
@@ -11,22 +12,28 @@ class customError extends Error {
 
 //  ErrorHandlers
 const notFoundHandler = (ctx, next) => {
-  ctx.status = 404;
-  ctx.body = {
-    success: false,
-    message: "Not found, Check the URL properly !!!"
-  };
+  responseHandler(
+    ctx,
+    false,
+    "Not found, Check the URL properly !!!",
+    404,
+    null,
+    ""
+  );
 
   return;
 };
 
 const validationErrorHandler = (ctx, err) => {
-  ctx.status = 400;
-  ctx.body = {
-    success: false,
-    message: "validation error!!!",
-    err
-  };
+  responseHandler(
+    ctx,
+    false,
+    "validation error!!!",
+    400,
+    { err },
+    "validation err:"
+  );
+
   return;
 };
 
@@ -45,8 +52,7 @@ const invalidJsonHandler = async (ctx, next) => {
     await next();
   } catch (err) {
     if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-      ctx.status = 400;
-      ctx.body = { success: false, message: "Invalid JSON payload" };
+      responseHandler(ctx, false, "Invalid JSON payload", 400, null, "");
       return;
     }
     throw err;
@@ -60,15 +66,15 @@ const ErrorHandler = (err, ctx) => {
   if (err instanceof customError) {
     console.log("custom error", err);
 
-    ctx.status = err.statusCode;
-    ctx.body = { success: false, message: err.message };
+    responseHandler(ctx, false, err.message, err.statusCode, null, err);
     return;
   }
 
   if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
     console.log("invalid json error", err);
-    ctx.status = 400;
-    ctx.body = { success: false, message: "Invalid JSON payload" };
+
+    responseHandler(ctx, false, "Invalid JSON payload", 400, null, err);
+
     return;
   }
 
@@ -78,40 +84,39 @@ const ErrorHandler = (err, ctx) => {
     // insert bulk write error handlers
 
     if (err.code === 121) {
-      ctx.status = 400;
-      ctx.body = {
-        success: false,
-        message: "mongodb validation error"
-      };
+      responseHandler(ctx, false, "something went wrong.", 500, null, err);
+
       return;
     }
 
     if (err.code === 11000) {
-      ctx.status = 400;
-      ctx.body = {
-        success: false,
-        message: "Email already exist!!!"
-      };
+      responseHandler(ctx, false, "Email already exist!!!", 400, null, err);
+
       return;
     }
   }
 
   if (err instanceof JsonWebTokenError || err instanceof TokenExpiredError) {
     console.log("JWT err", err);
-    ctx.status = 401;
-    ctx.body = { success: false, message: "Invalid or expired token..." };
+    responseHandler(
+      ctx,
+      false,
+      "Invalid or expired token..!!!",
+      401,
+      null,
+      err
+    );
+
     return;
   }
 
   const errStatus = err.statusCode || 500;
+  console.log("error status in error handler ", errStatus);
+
   const errMsg = err.message || "Something went wrong";
 
-  console.log("uncaught in globalErrorHandler :", err, err.code);
-  ctx.status = errStatus;
-  ctx.body = {
-    success: false,
-    message: errMsg
-  };
+  responseHandler(ctx, false, "something went wrong!!!", errStatus, null, err);
+
   return;
 };
 

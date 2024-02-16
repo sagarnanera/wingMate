@@ -10,6 +10,7 @@ const { genJWTToken } = require("../services/jwt.service");
 const { hashPassword } = require("../services/password.service");
 const { ROLES } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
+const { responseHandler } = require("../handlers/response.handler");
 
 exports.societyRegistration = async (ctx) => {
   const { societyName, location, area, email, name, password, contact } =
@@ -42,7 +43,7 @@ exports.societyRegistration = async (ctx) => {
     totalProperties: 0
   });
 
-  const promise = await Promise.all([secretory, society]);
+  await Promise.all([secretory, society]);
 
   const payload = {
     _id: secretoryId
@@ -50,33 +51,44 @@ exports.societyRegistration = async (ctx) => {
 
   const token = genJWTToken(payload);
 
-  console.log("promise", promise);
-
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Society registered successfully!!!",
-    user: { name, email, contact, societyId: _id, _id: secretoryId, token },
-    society: {
-      _id,
-      societyName,
-      location,
-      area,
-      secretoryId
-    }
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Society registered successfully!!!",
+    201,
+    {
+      user: {
+        name,
+        email,
+        contact,
+        societyId: _id,
+        _id: secretoryId,
+        token
+      },
+      society: {
+        _id,
+        societyName,
+        location,
+        area,
+        secretoryId
+      }
+    },
+    "Society registered : "
+  );
   return;
 };
 
 exports.getSocietyDetails = async (ctx) => {
   const society = ctx.request.society;
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Society details fetched successfully!!!",
-    society: society
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Society details fetched successfully!!!",
+    200,
+    { society },
+    "Society details fetched : "
+  );
   return;
 };
 
@@ -124,13 +136,15 @@ exports.addResidents = async (ctx) => {
 
   await insertUsers(ctx.db, userData);
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Invitation mail sent successfully to residents!!!",
-    invitationLinks,
-    userData
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Invitation mail sent successfully to residents!!!",
+    200,
+    { invitationLinks, userData },
+    "invitation to residents : "
+  );
+
   return;
 };
 
@@ -149,17 +163,26 @@ exports.updateSocietyDetails = async (ctx) => {
   console.log("society :", society, societyId);
 
   if (!society) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Society details not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Society details not found.",
+      404,
+      null,
+      "Society not found in update :"
+    );
+
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Society details updated successfully!!!",
-    society
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Society details updated successfully!!!",
+    200,
+    { society },
+    "Society updated : "
+  );
   return;
 };
 
@@ -172,14 +195,28 @@ exports.deleteSociety = async (ctx) => {
   });
 
   if (!society) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Society details not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Society details not found.",
+      404,
+      null,
+      "Society not found in delete :"
+    );
+
+    return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Society details deleted successfully."
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Society details deleted successfully.",
+    200,
+    null,
+    "Society deleted : "
+  );
+
+  // TODO : delete all residents, wings, properties, post etc........
+
   return;
 };

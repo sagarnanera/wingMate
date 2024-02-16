@@ -52,9 +52,3 @@ exports.deleteLikeData = async (db, searchQuery) => {
 
   return like;
 };
-
-// exports.updateTotalCommentCount = async (db, searchQuery, updateQuery) => {
-//   const LikeCollection = db.collection("likes");
-
-//   return LikeCollection.updateOne(searchQuery, updateQuery);
-// };

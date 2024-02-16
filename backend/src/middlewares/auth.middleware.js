@@ -6,8 +6,6 @@ const authenticate = (authenticatedRoles) => {
   return async (ctx, next) => {
     const token = ctx.cookies.get("token");
 
-    // console.log("token", token);
-
     if (!token) {
       throw new customError("Not Authorized. Token not found !!!", 401);
     }
@@ -15,8 +13,6 @@ const authenticate = (authenticatedRoles) => {
     const { _id } = verifyJWTToken(token);
 
     const user = await findUser(ctx.db, { _id });
-
-    // console.log(user);
 
     if (!user) {
       throw new customError("User not found.", 401);

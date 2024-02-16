@@ -21,8 +21,13 @@ const {
   startDateValidator,
   endDateValidator,
   reasonValidator,
-  bookingIdValidator
+  bookingIdValidator,
+  bookingTypeValidator
 } = require("../validators/booking.validator");
+const {
+  skipValidator,
+  limitValidator
+} = require("../validators/common.validator");
 const router = new KoaRouter({ prefix: "/api/v1/booking" });
 
 router.post(
@@ -38,7 +43,12 @@ router.post(
   createBooking
 );
 
-router.get("/", authenticate(AllRoles), getBookings);
+router.get(
+  "/",
+  authenticate(AllRoles),
+  staticValidate([skipValidator, limitValidator, bookingTypeValidator]),
+  getBookings
+);
 
 router.get(
   "/unbooked",

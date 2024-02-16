@@ -7,8 +7,8 @@ const {
   findWing,
   findWings
 } = require("../DB/wing.db");
+const { responseHandler } = require("../handlers/response.handler");
 const { ROLES } = require("../utils/constants");
-const generateUUID = require("../utils/generateUUID");
 
 exports.addWing = async (ctx) => {
   const { societyId } = ctx.request.user;
@@ -22,14 +22,15 @@ exports.addWing = async (ctx) => {
       { $set: { role: ROLES.WING_ADMIN } }
     );
 
-    console.log("wingAdmin", wingAdmin);
-
     if (!wingAdmin) {
-      ctx.status = 400;
-      ctx.body = {
-        success: false,
-        message: "Wing admin must be a member of society!!!"
-      };
+      responseHandler(
+        ctx,
+        false,
+        "Wing admin must be a member of society!!!",
+        400,
+        null,
+        "wing admin not found in addWing."
+      );
       return;
     }
   }
@@ -47,13 +48,14 @@ exports.addWing = async (ctx) => {
       $inc: { totalWings: 1 }
     }
   );
-
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Wing details added successfully!!!",
-    wing
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Wing details added successfully!!!",
+    201,
+    { wing },
+    "wing added : "
+  );
   return;
 };
 
@@ -64,31 +66,49 @@ exports.getWingDetails = async (ctx) => {
   const wing = await findWing(ctx.db, { _id: wingId, societyId });
 
   if (!wing) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Wing details not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Wing details not found.",
+      404,
+      null,
+      "wing not found."
+    );
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Wing details fetched successfully!!!",
-    wing
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Wing details fetched successfully!!!",
+    200,
+    { wing },
+    "wing fetched : "
+  );
+
   return;
 };
 
 exports.getWings = async (ctx) => {
   const { societyId } = ctx.request.user;
 
-  const wings = await findWings(ctx.db, { societyId });
+  const { skip, limit } = ctx.query;
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Wings fetched successfully!!!",
-    wings
+  const sortFilter = {
+    createdOn: -1
   };
+
+  const wings = await findWings(ctx.db, { societyId }, skip, limit, sortFilter);
+
+  responseHandler(
+    ctx,
+    true,
+    "Wing details fetched successfully!!!",
+    200,
+    { totalWings: wings.length, wings },
+    "wing fetched : "
+  );
+
   return;
 };
 
@@ -107,11 +127,14 @@ exports.updateWingDetails = async (ctx) => {
     console.log("wingAdmin", wingAdmin);
 
     if (!wingAdmin) {
-      ctx.status = 400;
-      ctx.body = {
-        success: false,
-        message: "Wing admin must be a member of society!!!"
-      };
+      responseHandler(
+        ctx,
+        false,
+        "Wing admin must be a member of society!!!",
+        400,
+        null,
+        "wing admin not found in updated wing."
+      );
       return;
     }
 
@@ -129,17 +152,27 @@ exports.updateWingDetails = async (ctx) => {
   console.log("wing after update:", wing);
 
   if (!wing) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Wing details not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Wing details not found.",
+      404,
+      null,
+      "wing not found in update wing."
+    );
+
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Wing details updated successfully!!!",
-    wing
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Wing details updated successfully!!!",
+    200,
+    { wing },
+    "wing updated : "
+  );
+
   return;
 };
 
@@ -153,8 +186,15 @@ exports.deleteWingDetails = async (ctx) => {
   });
 
   if (!wing) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Wing details not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Wing details not found.",
+      404,
+      null,
+      "wing not found in deleted wing."
+    );
+
     return;
   }
 
@@ -166,7 +206,13 @@ exports.deleteWingDetails = async (ctx) => {
     }
   );
 
-  ctx.status = 200;
-  ctx.body = { success: true, message: "Wing details deleted successfully." };
+  responseHandler(
+    ctx,
+    true,
+    "Wing details deleted successfully!!!",
+    200,
+    null,
+    "wing deleted : "
+  );
   return;
 };

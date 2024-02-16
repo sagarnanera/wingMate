@@ -120,12 +120,19 @@ exports.unbookedProperties = async (db, societyId, requestedDateRange) => {
  *
  * @param {*} db
  * @param {*} searchQuery
+ * @param {*} skip
+ * @param {*} limit
+ * @param {*} sort
  * @returns
  */
-exports.findBookings = async (db, searchQuery) => {
+exports.findBookings = async (db, searchQuery, skip, limit, sort) => {
   const BookingCollection = db.collection("bookings");
 
-  const bookings = await BookingCollection.find(searchQuery).toArray();
+  const bookings = await BookingCollection.find(searchQuery)
+    .skip(skip)
+    .limit(limit)
+    .sort(sort)
+    .toArray();
 
   return bookings;
 };

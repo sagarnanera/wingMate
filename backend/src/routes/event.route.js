@@ -30,6 +30,10 @@ const {
   isBookingExistValidator,
   isEventExistValidator
 } = require("../validators/db.validator");
+const {
+  limitValidator,
+  skipValidator
+} = require("../validators/common.validator");
 const router = new KoaRouter({ prefix: "/api/v1/event" });
 
 router.post(
@@ -47,9 +51,19 @@ router.post(
   createEvent
 );
 
-router.get("/admin", authenticate([ROLES.SECRETORY]), getEventsAdmin);
+router.get(
+  "/admin",
+  authenticate([ROLES.SECRETORY]),
+  staticValidate([skipValidator, limitValidator, eventStatusValidator]),
+  getEventsAdmin
+);
 
-router.get("/", authenticate(AllRoles), getEvents);
+router.get(
+  "/",
+  authenticate(AllRoles),
+  staticValidate([skipValidator, limitValidator, eventStatusValidator]),
+  getEvents
+);
 
 router.get(
   "/:eventId",

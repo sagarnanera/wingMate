@@ -22,6 +22,10 @@ const {
   propertyIdValidator
 } = require("../validators/property.validator");
 const { propertyIdsValidator } = require("../validators/booking.validator");
+const {
+  skipValidator,
+  limitValidator
+} = require("../validators/common.validator");
 const router = new KoaRouter({ prefix: "/api/v1/property" });
 
 router.post(
@@ -37,7 +41,12 @@ router.post(
   dbValidate([wingExistValidator]),
   addProperty
 );
-router.get("/", authenticate(AllRoles), getProperties);
+router.get(
+  "/",
+  authenticate(AllRoles),
+  staticValidate([skipValidator, limitValidator]),
+  getProperties
+);
 
 router.get(
   "/:propertyId",

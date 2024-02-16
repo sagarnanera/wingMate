@@ -8,7 +8,6 @@ const staticValidate = (staticValidators) => {
     });
 
     const error = err.filter((e) => e !== null);
-    console.log("err in validation : ", error);
 
     if (error.length > 0) {
       validationErrorHandler(ctx, error);

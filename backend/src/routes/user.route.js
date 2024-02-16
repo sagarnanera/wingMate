@@ -21,6 +21,10 @@ const { wingIdValidator } = require("../validators/wing.validator");
 const dbValidate = require("../middlewares/dbValidate.middleware");
 const { wingExistValidator } = require("../validators/db.validator");
 const { societyIdValidator } = require("../validators/society.validator");
+const {
+  skipValidator,
+  limitValidator
+} = require("../validators/common.validator");
 const router = new KoaRouter({ prefix: "/api/v1/user" });
 
 router.get("/", authenticate(AllRoles), getUser);
@@ -51,6 +55,7 @@ router.post(
 router.get(
   "/users",
   authenticate([ROLES.SECRETORY, ROLES.WING_ADMIN]),
+  staticValidate([skipValidator, limitValidator]),
   getAllUsers
 );
 

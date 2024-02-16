@@ -5,9 +5,7 @@ const {
   updateBookingData
 } = require("../DB/booking.db");
 const {
-  updateEvent,
   insertEvent,
-  deleteEvent,
   findEvent,
   findEvents,
   updateEventData,
@@ -24,6 +22,7 @@ const {
   FEED_TYPE
 } = require("../utils/constants");
 const { deleteComments } = require("../DB/comment.db");
+const { responseHandler } = require("../handlers/response.handler");
 
 exports.createEvent = async (ctx) => {
   const {
@@ -49,7 +48,7 @@ exports.createEvent = async (ctx) => {
     description,
     feesPerPerson,
     propertyIds,
-    status: EVENT_STATUS.PENDING,
+    status: EVENT_STATUS.PENDING, // TODO : status should be already approved when secretory add event
     ...requestedDateRange,
     createdOn
   };
@@ -57,15 +56,16 @@ exports.createEvent = async (ctx) => {
   const event = await insertEvent(ctx.db, eventData);
 
   if (!event) {
-    ctx.status = 400;
-    ctx.body = {
-      success: false,
-      message: "Unable to add event, try again later!!!"
-    };
+    responseHandler(
+      ctx,
+      false,
+      "Unable to add event, try again later!!!",
+      400,
+      null,
+      "error in db while adding event."
+    );
     return;
   }
-
-  console.log("eventId", event._id);
 
   const [{ totalAmount }] = await calculatePropertyRent(
     ctx.db,
@@ -87,41 +87,78 @@ exports.createEvent = async (ctx) => {
 
   const booking = await insertBooking(ctx.db, bookingData);
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Event added successfully!!!",
-    event,
-    booking
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Event added successfully!!!",
+    201,
+    { event, booking },
+    "event added : "
+  );
   return;
 };
 
 exports.getEvents = async (ctx) => {
   const { societyId, _id: userId } = ctx.request.user;
 
-  const events = await findEvents(ctx.db, { societyId, userId });
+  const { skip, limit, eventStatus } = ctx.query;
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "events fetched successfully!!!",
-    events
+  const searchQuery = { societyId, userId };
+
+  if (eventStatus) {
+    // searchQuery["status"] = eventStatus;
+
+    // can be used as well
+    Object.assign(searchQuery, {
+      status: eventStatus
+    });
+  }
+
+  const sortFilter = {
+    createdOn: -1
   };
+
+  const events = await findEvents(ctx.db, searchQuery, skip, limit, sortFilter);
+
+  responseHandler(
+    ctx,
+    true,
+    "Events fetched successfully!!!",
+    200,
+    { totalFetchedEvents: events.length, events },
+    "events fetched : "
+  );
+
   return;
 };
 
 exports.getEventsAdmin = async (ctx) => {
   const { societyId } = ctx.request.user;
+  const { skip, limit, eventStatus } = ctx.query;
 
-  const events = await findEvents(ctx.db, { societyId });
+  const searchQuery = { societyId };
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "events fetched successfully!!!",
-    events
+  const sortFilter = {
+    createdOn: -1
   };
+
+  if (eventStatus) {
+    Object.assign(searchQuery, {
+      status: eventStatus
+    });
+  }
+
+  const events = await findEvents(ctx.db, searchQuery, skip, limit, sortFilter);
+
+  responseHandler(
+    ctx,
+    true,
+    "Events fetched successfully!!!",
+    200,
+    { totalFetchedEvents: events.length, events },
+    "events fetched by admin : "
+  );
+
   return;
 };
 
@@ -135,17 +172,26 @@ exports.getEvent = async (ctx) => {
   });
 
   if (!event) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "event not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Event not found.",
+      404,
+      null,
+      "event not found at controller."
+    );
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Event fetched successfully!!!",
-    event
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Event fetched successfully!!!",
+    200,
+    { event },
+    "event fetched : "
+  );
+
   return;
 };
 
@@ -166,8 +212,14 @@ exports.updateEvent = async (ctx) => {
   console.log("event after update:", event);
 
   if (!event) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Event not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Event not found.",
+      404,
+      null,
+      "event not found in update event."
+    );
     return;
   }
 
@@ -197,12 +249,14 @@ exports.updateEvent = async (ctx) => {
     )
   ]);
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Event & booking details updated successfully!!!",
-    event
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Event & booking details updated successfully!!!",
+    200,
+    { event },
+    "event updated : "
+  );
   return;
 };
 
@@ -217,22 +271,31 @@ exports.deleteEvent = async (ctx) => {
     societyId
   });
 
-  console.log("event after delete", event);
-
   if (!event) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Event details not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Event not found.",
+      404,
+      null,
+      "event not found in deleted event."
+    );
+
     return;
   }
 
   await deleteBookingData(ctx.db, { eventId: _id });
 
   if (event.status !== EVENT_STATUS.APPROVED) {
-    ctx.status = 200;
-    ctx.body = {
-      success: true,
-      message: "Event & booking details deleted successfully."
-    };
+    responseHandler(
+      ctx,
+      true,
+      "Event & booking details deleted successfully!!!",
+      200,
+      null,
+      "event deleted : "
+    );
+
     return;
   }
 
@@ -253,11 +316,15 @@ exports.deleteEvent = async (ctx) => {
     deleteComments(ctx.db, { postId: post?._id })
   ]);
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Event & booking details deleted successfully."
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Event & booking details deleted successfully!!!",
+    200,
+    null,
+    "event deleted : "
+  );
+
   return;
 };
 
@@ -274,21 +341,28 @@ exports.changeEventStatus = async (ctx) => {
   );
 
   if (!event) {
-    ctx.status = 404;
-    ctx.body = {
-      success: false,
-      message: "Event not found or already approved."
-    };
+    responseHandler(
+      ctx,
+      false,
+      "Event not found.",
+      404,
+      null,
+      "event not found in change status :"
+    );
+
     return;
   }
 
   if (status === EVENT_STATUS.REJECTED) {
-    ctx.status = 200;
-    ctx.body = {
-      success: true,
-      message: "Event status changed to rejected successfully!!!",
-      event
-    };
+    responseHandler(
+      ctx,
+      true,
+      "Event status changed to rejected successfully!!!",
+      200,
+      { event },
+      "event status changed to rejected : "
+    );
+
     return;
   }
 
@@ -323,11 +397,14 @@ exports.changeEventStatus = async (ctx) => {
     )
   ]);
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Event status changed to approved successfully!!!",
-    event: { ...event, postId: post._id }
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Event status changed to approved successfully!!!",
+    200,
+    { event: { ...event, postId: post._id } },
+    "event status changed to approved : "
+  );
+
   return;
 };

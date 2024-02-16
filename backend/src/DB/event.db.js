@@ -23,10 +23,23 @@ exports.findEvent = async (db, searchQuery) => {
   return event;
 };
 
-exports.findEvents = async (db, searchQuery) => {
+/**
+ *
+ * @param {*} db
+ * @param {*} searchQuery
+ * @param {*} skip
+ * @param {*} limit
+ * @param {*} sort
+ * @returns
+ */
+exports.findEvents = async (db, searchQuery, skip, limit, sort) => {
   const EventCollection = db.collection("events");
 
-  const events = await EventCollection.find(searchQuery).toArray();
+  const events = await EventCollection.find(searchQuery)
+    .skip(skip)
+    .limit(limit)
+    .sort(sort)
+    .toArray();
 
   console.log(events);
 

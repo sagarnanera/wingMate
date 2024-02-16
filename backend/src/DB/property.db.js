@@ -24,12 +24,14 @@ exports.findProperty = async (db, searchQuery) => {
   return property;
 };
 
-exports.findProperties = async (db, searchQuery) => {
+exports.findProperties = async (db, searchQuery, skip, limit, sort) => {
   const PropertyCollection = db.collection("properties");
 
-  const properties = await PropertyCollection.find(searchQuery).toArray();
-
-  // console.log(properties);
+  const properties = await PropertyCollection.find(searchQuery)
+    .skip(skip)
+    .limit(limit)
+    .sort(sort)
+    .toArray();
 
   return properties;
 };

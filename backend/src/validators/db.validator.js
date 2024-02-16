@@ -141,6 +141,7 @@ exports.commentExistValidator = async (ctx) => {
   let { commentId } = ctx.state;
 
   if (commentId) {
+    // TODO : add postId to check comment belongs to the post
     const result = await findComment(ctx.db, { _id: commentId });
 
     if (!result) {
@@ -261,7 +262,9 @@ exports.propertiesExistValidator = async (ctx) => {
   // console.log("query", searchQuery);
 
   if (propertyIds) {
-    const results = await findProperties(ctx.db, searchQuery);
+    const results = await findProperties(ctx.db, searchQuery, 0, 0, {
+      createdOn: -1
+    });
 
     if (!results || results.length !== propertyIds.length) {
       throw new customError("Properties details not found.", 404);

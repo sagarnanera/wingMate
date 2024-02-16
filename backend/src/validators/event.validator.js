@@ -85,9 +85,13 @@ exports.eventIdValidator = (ctx) => {
 };
 
 exports.eventStatusValidator = (ctx) => {
-  const { status } = ctx.request.body;
+  let { status } = ctx.request.body;
 
-  if (!status) {
+  if (ctx.request.method === "GET") {
+    status = ctx.query.eventStatus;
+  }
+
+  if (!status && ctx.request.method !== "GET") {
     return { field: "status", message: "status is required" };
   }
 

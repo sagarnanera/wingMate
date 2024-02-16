@@ -1,4 +1,3 @@
-const { deletePostData } = require("../DB/post.db");
 const {
   insertProperty,
   findProperties,
@@ -7,27 +6,38 @@ const {
   deletePropertyData
 } = require("../DB/property.db");
 const { updateSocietyAnalytics } = require("../DB/society.db");
+const { responseHandler } = require("../handlers/response.handler");
 
 exports.addProperty = async (ctx) => {
   const { name, wingId, area, location, rentPerDay } = ctx.request.body;
-
   const { societyId } = ctx.request.user;
 
-  const property = await insertProperty(ctx.db, {
+  const propertyData = {
     name,
-    wingId,
-    societyId,
     area,
     location,
-    rentPerDay
-  });
+    rentPerDay,
+    societyId,
+    createdOn: new Date()
+  };
+
+  if (wingId) {
+    Object.assign(propertyData, {
+      wingId
+    });
+  }
+
+  const property = await insertProperty(ctx.db, propertyData);
 
   if (!property) {
-    ctx.status = 400;
-    ctx.body = {
-      success: true,
-      message: "Unable to add property, try again later!!!"
-    };
+    responseHandler(
+      ctx,
+      false,
+      "Unable to add property, try again later!!!",
+      400,
+      null,
+      "property not added."
+    );
     return;
   }
 
@@ -39,19 +49,22 @@ exports.addProperty = async (ctx) => {
     }
   );
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Property added successfully!!!",
-    property
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Property added successfully!!!",
+    201,
+    { property },
+    "property added : "
+  );
+
   return;
 };
 
 exports.getProperties = async (ctx) => {
   const { societyId } = ctx.request.user;
 
-  const { wingId } = ctx.query;
+  const { wingId, skip, limit } = ctx.query;
 
   const searchQuery = {};
 
@@ -61,14 +74,26 @@ exports.getProperties = async (ctx) => {
     searchQuery["societyId"] = societyId;
   }
 
-  const properties = await findProperties(ctx.db, searchQuery);
-
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Properties fetched successfully!!!",
-    properties
+  const sortFilter = {
+    createdOn: -1
   };
+
+  const properties = await findProperties(
+    ctx.db,
+    searchQuery,
+    skip,
+    limit,
+    sortFilter
+  );
+
+  responseHandler(
+    ctx,
+    true,
+    "Properties fetched successfully!!!",
+    200,
+    { totalFetchedProperties: properties.length, properties },
+    "property list fetched : "
+  );
   return;
 };
 
@@ -82,17 +107,25 @@ exports.getProperty = async (ctx) => {
   });
 
   if (!property) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "property not found." };
+    responseHandler(
+      ctx,
+      false,
+      "property not found.",
+      404,
+      null,
+      "property not found at controller."
+    );
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Property fetched successfully!!!",
-    property
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Property fetched successfully!!!",
+    200,
+    { property },
+    "property fetched"
+  );
   return;
 };
 
@@ -101,26 +134,42 @@ exports.updateProperty = async (ctx) => {
   const { societyId } = ctx.request.user;
   const { propertyId } = ctx.params;
 
+  // const propertyData = { name, area, location, rentPerDay };
+
+  // if (wingId) {
+  //   Object.assign(propertyData, {
+  //     wingId
+  //   });
+  // }
+
   const property = await updatePropertyData(
     ctx.db,
     { _id: propertyId, societyId },
-    { wingId, name, area, location, rentPerDay }
+    { name, area, location, rentPerDay, wingId }
   );
 
   console.log("property after update:", property);
 
   if (!property) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Property not found." };
+    responseHandler(
+      ctx,
+      false,
+      "property not found.",
+      404,
+      null,
+      "property not found at update controller."
+    );
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Property details updated successfully!!!",
-    property
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Property details updated successfully!!!",
+    200,
+    { property },
+    "property updated."
+  );
   return;
 };
 
@@ -135,8 +184,14 @@ exports.deleteProperty = async (ctx) => {
   console.log("property", property);
 
   if (!property) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Property details not found." };
+    responseHandler(
+      ctx,
+      false,
+      "property not found.",
+      404,
+      null,
+      "property not found at delete controller."
+    );
     return;
   }
 
@@ -148,10 +203,15 @@ exports.deleteProperty = async (ctx) => {
     }
   );
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Property details deleted successfully."
-  };
+  // TODO : delete all data related to property (bookings, events etc...)
+
+  responseHandler(
+    ctx,
+    true,
+    "Property details deleted successfully.",
+    200,
+    null,
+    "property deleted."
+  );
   return;
 };

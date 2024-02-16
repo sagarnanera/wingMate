@@ -7,18 +7,16 @@ exports.insertWing = async (db, wingData) => {
 
   const { wingId, wingAdminId, ...restWingData } = wingData;
 
-  if (wingAdminId && wingAdminId !== "") {
-    const wingAdmin = await UserCollection.findOneAndUpdate(
-      { _id: wingAdminId, wingId },
-      { $set: { role: ROLES.WING_ADMIN } }
-    );
+  // if (wingAdminId && wingAdminId !== "") {
+  //   const wingAdmin = await UserCollection.findOneAndUpdate(
+  //     { _id: wingAdminId, wingId },
+  //     { $set: { role: ROLES.WING_ADMIN } }
+  //   );
 
-    console.log("wingAdmin", wingAdmin);
-
-    if (!wingAdmin) {
-      return null;
-    }
-  }
+  //   if (!wingAdmin) {
+  //     return null;
+  //   }
+  // }
 
   const _id = generateUUID();
 
@@ -45,17 +43,17 @@ exports.findWing = async (db, searchQuery) => {
 
   const wing = await WingCollection.findOne(searchQuery);
 
-  console.log(wing);
-
   return wing;
 };
 
-exports.findWings = async (db, searchQuery) => {
+exports.findWings = async (db, searchQuery, skip, limit, sort) => {
   const WingCollection = db.collection("wings");
 
-  const wings = await WingCollection.find(searchQuery).toArray();
-
-  console.log(wings);
+  const wings = await WingCollection.find(searchQuery)
+    .skip(skip)
+    .limit(limit)
+    .sort(sort)
+    .toArray();
 
   return wings;
 };

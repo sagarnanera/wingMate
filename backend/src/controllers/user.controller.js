@@ -1,22 +1,27 @@
 const { updateUserData, findUsers } = require("../DB/user.db");
+const { responseHandler } = require("../handlers/response.handler");
 const { hashPassword } = require("../services/password.service");
 const { ROLES } = require("../utils/constants");
 
 exports.getUser = async (ctx) => {
-  // const UserCollection = ctx.db.collection("users");
-
   const { password, ...user } = ctx.request.user;
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "User fetched successfully!!!",
-    user
-  };
+
+  responseHandler(
+    ctx,
+    true,
+    "User fetched successfully!!!",
+    200,
+    { user },
+    "user fetched : "
+  );
+
   return;
 };
 
 exports.getAllUsers = async (ctx) => {
   //   const query = { role: ctx.request.user.role };
+
+  const { skip, limit } = ctx.query;
   const query = {};
 
   // TODO : get all users of society / wing except the requesting user.
@@ -25,14 +30,22 @@ exports.getAllUsers = async (ctx) => {
     query["societyId"] = ctx.request.user?.societyId;
   else query["wingId"] = ctx.request.user?.wingId;
 
-  console.log("query :", query);
+  const sortFilter = {
+    createdOn: -1
+  };
 
-  const users = await findUsers(ctx.db, query);
+  const users = await findUsers(ctx.db, query, skip, limit, sortFilter);
 
   console.log("users", users);
 
-  ctx.status = 200;
-  ctx.body = { success: true, message: "Users fetched successfully", users };
+  responseHandler(
+    ctx,
+    true,
+    "Users fetched successfully!!!",
+    200,
+    { totalUserFetched: users.length, users },
+    "users fetched : "
+  );
   return;
 };
 
@@ -51,40 +64,57 @@ exports.verifyUser = async (ctx) => {
   );
 
   if (!user) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "User not found." };
+    responseHandler(
+      ctx,
+      true,
+      "User not found.",
+      404,
+      null,
+      "user not found in verify user : "
+    );
+
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "User verified successfully!!!",
-    user
-  };
+  responseHandler(
+    ctx,
+    true,
+    "User verified successfully!!!",
+    200,
+    { user },
+    "users fetched : "
+  );
+
   return;
 };
 
 exports.updateUseRole = async (ctx) => {
-  // const UserCollection = ctx.db.collection("users");
-
   const { role, _id } = ctx.request.body;
 
-  // const user = await UserCollection.findOneAndUpdate(ctx.db, { _id }, role);
   const user = await updateUserData(ctx.db, { _id }, { $set: { role } });
 
   if (!user) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "User not found." };
+    responseHandler(
+      ctx,
+      true,
+      "User not found.",
+      404,
+      null,
+      "user not found in update role : "
+    );
+
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: `User Role updated to : ${user.role}`,
-    user
-  };
+  responseHandler(
+    ctx,
+    true,
+    `User Role updated to : ${user.role}`,
+    200,
+    { user },
+    "user role updated : "
+  );
+
   return;
 };
 
@@ -101,74 +131,92 @@ exports.updateUser = async (ctx) => {
   console.log("user in update:", user);
 
   if (!user) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "User not found." };
+    responseHandler(
+      ctx,
+      true,
+      "User not found.",
+      404,
+      null,
+      "user not found in update user : "
+    );
+
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = { success: true, message: "User updated successfully!!!", user };
+  responseHandler(
+    ctx,
+    true,
+    "User updated successfully!!!",
+    200,
+    { user },
+    "user updated : "
+  );
+
   return;
 };
 
 exports.deleteUser = async (ctx) => {
-  // const UserCollection = ctx.db.collection("users");
   const { _id } = ctx.request.user;
 
-  // const user = await UserCollection.findOneAndDelete({ _id });
   const user = await deleteUser(ctx.db, { _id });
   if (!user) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "User not found." };
+    responseHandler(
+      ctx,
+      true,
+      "User not found.",
+      404,
+      null,
+      "user not found in delete user : "
+    );
+
+    return;
   }
 
-  ctx.status = 200;
-  ctx.body = { success: true, message: "User deleted successfully." };
+  responseHandler(
+    ctx,
+    true,
+    "User deleted successfully.",
+    200,
+    null,
+    "user deleted : "
+  );
+
   return;
 };
 
 exports.updatePassword = async (ctx) => {
-  //   const { error } = passwordValidator.validate(req.body);
-
-  //   if (error) {
-  //     return res
-  //       .status(400)
-  //       .json({ success: false, message: error.details[0].message });
-  //   }
-
   const { _id } = ctx.request.user;
-  // const UserCollection = ctx.db.collection("users");
-
-  console.log("_id", _id);
 
   const { password } = ctx.request.body;
   const newHash = await hashPassword(password);
 
-  // const user = await UserCollection.findOneAndUpdate(
   const user = await updateUserData(
     ctx.db,
     { _id },
     { $set: { password: newHash } }
   );
-  // {
-  //   returnDocument: "after",
-  //   projection: {
-  //     password: 0,
-  //     resetPasswordExpires: 0,
-  //     resetPasswordToken: 0
-  //   }
-  // }
 
   if (!user) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "User not found." };
+    responseHandler(
+      ctx,
+      true,
+      "User not found.",
+      404,
+      null,
+      "user not found in update password : "
+    );
+
+    return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "User password updated successfully.",
-    user
-  };
+  responseHandler(
+    ctx,
+    true,
+    "User password updated successfully.",
+    200,
+    { user },
+    "user password updated : "
+  );
+
   return;
 };

@@ -6,8 +6,8 @@ const {
   updateBookingData,
   deleteBookingData
 } = require("../DB/booking.db");
-const { updateEventData } = require("../DB/event.db");
 const { calculatePropertyRent } = require("../DB/property.db");
+const { responseHandler } = require("../handlers/response.handler");
 const { BOOKING_TYPE } = require("../utils/constants");
 
 exports.createBooking = async (ctx) => {
@@ -41,20 +41,43 @@ exports.createBooking = async (ctx) => {
   const booking = await insertBooking(ctx.db, bookingData);
 
   if (!booking) {
-    ctx.status = 400;
-    ctx.body = {
-      success: false,
-      message:
-        "Unable to book the requested properties, Please try again later!!!"
-    };
+    // ctx.status = 400;
+    // ctx.body = {
+    //   success: false,
+    //   message:
+    //     "Unable to book the requested properties, Please try again later!!!"
+    // };
+
+    responseHandler(
+      ctx,
+      false,
+      "Unable to book the requested properties, Please try again later!!!",
+      400,
+      null,
+      "error in db while adding booking."
+    );
+
+    return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Booked properties successfully!!!",
-    bookingDetails: booking
-  };
+  // ctx.status = 200;
+  // ctx.body = {
+  //   success: true,
+  //   message: "Booked properties successfully!!!",
+  //   bookingDetails: booking
+  // };
+
+  responseHandler(
+    ctx,
+    true,
+    "Booked properties successfully!!!",
+    201,
+    {
+      bookingDetails: booking
+    },
+    "booking added :"
+  );
+
   return;
 };
 
@@ -67,54 +90,76 @@ exports.getBooking = async (ctx) => {
   console.log("booking ,", bookingId, booking, userId);
 
   if (!booking) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Booking details not found." };
+    // ctx.status = 404;
+    // ctx.body = { success: false, message: "Booking details not found." };
+
+    responseHandler(
+      ctx,
+      false,
+      "Booking details not found.",
+      404,
+      null,
+      "booking not found."
+    );
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Booking details fetched successfully!!!",
-    booking
-  };
+  // ctx.status = 200;
+  // ctx.body = {
+  //   success: true,
+  //   message: "Booking details fetched successfully!!!",
+  //   booking
+  // };
+
+  responseHandler(
+    ctx,
+    true,
+    "Booking details fetched successfully!!!",
+    200,
+    {
+      booking
+    },
+    "booking fetched :"
+  );
+
   return;
 };
 
 exports.getBookings = async (ctx) => {
   const { wingId, societyId, _id, role } = ctx.request.user;
-  const { propertyType, bookingType } = ctx.query;
+  const { propertyType, skip, limit, bookingType } = ctx.query;
 
   const query = { userId: _id, societyId };
 
-  // if (role !== ROLES.SECRETORY) {
-  //   query["userId"] = _id;
-  // }
+  if (bookingType) {
+    query["bookingType"] = bookingType;
+  }
 
-  // if (role !== ROLES.SECRETORY) {
-  // }
-
-  // if (propertyType && propertyType === PROPERTY_TYPE.WING) {
-  //   query["propertyType"] = wingId;
-  // }
-
-  // if (bookingType && bookingType === BOOKING_TYPE.EVENT) {
-  //   query["bookingType"] = BOOKING_TYPE.EVENT;
-  // }
-
-  // if (bookingType && bookingType === BOOKING_TYPE.PERSONAL) {
-  //   query["bookingType"] = BOOKING_TYPE.PERSONAL;
-  // }
-
-  // const bookings = await BookingCollection.find(query).toArray();
-  const bookings = await findBookings(ctx.db, query);
-
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Bookings fetched successfully!!!",
-    bookings
+  const sortFilter = {
+    createdOn: -1
   };
+
+  const bookings = await findBookings(ctx.db, query, skip, limit, sortFilter);
+
+  // ctx.status = 200;
+  // ctx.body = {
+  //   success: true,
+  //   message: "Bookings fetched successfully!!!",
+  //   bookings
+  // };
+
+  responseHandler(
+    ctx,
+    true,
+    "Bookings fetched successfully!!!",
+    200,
+    {
+      totalBookings: bookings.length,
+      bookings
+    },
+    "booking fetched :"
+  );
+
   return;
 };
 
@@ -139,17 +184,38 @@ exports.updateBooking = async (ctx) => {
   console.log("booking after update:", booking);
 
   if (!booking) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Booking details not found." };
+    // ctx.status = 404;
+    // ctx.body = { success: false, message: "Booking details not found." };
+
+    responseHandler(
+      ctx,
+      false,
+      "Booking details not found.",
+      404,
+      null,
+      "booking not found in update."
+    );
+
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Booking details updated successfully!!!",
-    booking
-  };
+  // ctx.status = 200;
+  // ctx.body = {
+  //   success: true,
+  //   message: "Booking details updated successfully!!!",
+  //   booking
+  // };
+
+  responseHandler(
+    ctx,
+    true,
+    "Booking details updated successfully!!!",
+    200,
+    {
+      booking
+    },
+    "booking updated :"
+  );
   return;
 };
 
@@ -165,20 +231,38 @@ exports.deleteBooking = async (ctx) => {
   });
 
   if (!booking) {
-    ctx.status = 404;
-    ctx.body = {
-      success: false,
-      message:
-        "Booking details not found or booking is event booking which can't be deleted directly."
-    };
+    // ctx.status = 404;
+    // ctx.body = {
+    //   success: false,
+    //   message:
+    //     "Booking details not found or booking is event booking which can't be deleted directly."
+    // };
+
+    responseHandler(
+      ctx,
+      false,
+      "Booking details not found or booking is event booking which can't be deleted directly.",
+      404,
+      null,
+      "booking not found or it's event booking in delete booking."
+    );
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Booking details deleted successfully."
-  };
+  // ctx.status = 200;
+  // ctx.body = {
+  //   success: true,
+  //   message: "Booking details deleted successfully."
+  // };
+
+  responseHandler(
+    ctx,
+    true,
+    "Booking details deleted successfully.",
+    200,
+    null,
+    "booking deleted :"
+  );
   return;
 };
 
@@ -197,13 +281,26 @@ exports.getUnbookedProperties = async (ctx) => {
     requestedDateRange
   );
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message:
-      "Available properties for the given time frame fetched successfully!!!",
-    availableProperties
-  };
+  // ctx.status = 200;
+  // ctx.body = {
+  //   success: true,
+  //   message:
+  //     "Available properties for the given time frame fetched successfully!!!",
+  //   availableProperties
+  // };
+
+  responseHandler(
+    ctx,
+    true,
+    "Available properties for the given time frame fetched successfully!!!",
+    200,
+    {
+      totalAvailableProperties: availableProperties.length,
+      availableProperties
+    },
+    "available properties :"
+  );
+
   return;
 };
 
@@ -224,16 +321,38 @@ exports.changeBookingStatus = async (ctx) => {
   );
 
   if (!booking) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Booking details not found." };
+    // ctx.status = 404;
+    // ctx.body = { success: false, message: "Booking details not found." };
+
+    responseHandler(
+      ctx,
+      false,
+      "Booking details not found.",
+      404,
+      null,
+      "booking not found in change booking status."
+    );
+
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Booking approved successfully!!!",
-    booking
-  };
+  // ctx.status = 200;
+  // ctx.body = {
+  //   success: true,
+  //   message: "Booking approved successfully!!!",
+  //   booking
+  // };
+
+  responseHandler(
+    ctx,
+    true,
+    "Booking approved successfully!!!",
+    200,
+    {
+      booking
+    },
+    "booking approved :"
+  );
+
   return;
 };

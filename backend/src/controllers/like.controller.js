@@ -1,13 +1,8 @@
 const { Promise } = require("bluebird");
-const {
-  insertLike,
-  findLikes,
-  updateLikeData,
-  deleteLikeData,
-  deleteLikes
-} = require("../DB/like.db");
+const { insertLike, findLikes, deleteLikeData } = require("../DB/like.db");
 const { updatePostData } = require("../DB/post.db");
 const { updateCommentData } = require("../DB/comment.db");
+const { responseHandler } = require("../handlers/response.handler");
 
 exports.addRemoveLike = async (ctx) => {
   const { commentId, isLiked } = ctx.request.body;
@@ -51,23 +46,26 @@ exports.addRemoveLike = async (ctx) => {
     // TODO : check better way to update the counter as if post doesn't get inserted it will still update the count
     const [like, ...rest] = await Promise.all(promiseArr);
 
-    console.log("like on like :", like, rest);
-
     if (!like) {
-      ctx.status = 400;
-      ctx.body = {
-        success: false,
-        message: "Unable to add like, try again later!!!"
-      };
+      responseHandler(
+        ctx,
+        false,
+        "Unable to add like, try again later!!!",
+        400,
+        null,
+        "error while adding like in db."
+      );
       return;
     }
 
-    ctx.status = 200;
-    ctx.body = {
-      success: true,
-      message: "Liked successfully!!!",
-      like
-    };
+    responseHandler(
+      ctx,
+      true,
+      "Liked successfully!!!",
+      201,
+      { like },
+      "like added : "
+    );
     return;
   } else {
     delete likeData.createdOn;
@@ -77,8 +75,14 @@ exports.addRemoveLike = async (ctx) => {
     console.log("like deleted", like);
 
     if (!like) {
-      ctx.status = 404;
-      ctx.body = { success: false, message: "Like details not found." };
+      responseHandler(
+        ctx,
+        false,
+        "Like details not found!!!",
+        400,
+        null,
+        "error while deleting like from db."
+      );
       return;
     }
 
@@ -97,12 +101,14 @@ exports.addRemoveLike = async (ctx) => {
         }
       );
     }
-
-    ctx.status = 200;
-    ctx.body = {
-      success: true,
-      message: "UnLiked successfully."
-    };
+    responseHandler(
+      ctx,
+      true,
+      "UnLiked successfully!!!",
+      200,
+      null,
+      "like deleted : "
+    );
     return;
   }
 };
@@ -126,59 +132,14 @@ exports.getLikes = async (ctx) => {
 
   const likes = await findLikes(ctx.db, searchQuery, skip, limit, sortFilter);
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "likes fetched successfully!!!",
-    totalLikes: likes.length,
-    likes
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Like list fetched successfully!!!",
+    200,
+    { totalFetchedLikes: likes.length, likes },
+    "like list fetched : "
+  );
 
   return;
 };
-
-// exports.deleteLike = async (ctx) => {
-//   const { _id: userId } = ctx.request.user;
-//   const { likeId: _id } = ctx.params;
-
-//   const like = await deleteLikeData(ctx.db, {
-//     _id,
-//     userId
-//   });
-
-//   if (!like) {
-//     ctx.status = 404;
-//     ctx.body = { success: false, message: "Like not found." };
-//     return;
-//   }
-
-//   await Promise.all([
-//     await updatePostData(
-//       ctx.db,
-//       { _id: like?.postId },
-//       {
-//         $inc: { totalLikes: -1 }
-//       }
-//     ),
-//     await updateLikeData(
-//       ctx.db,
-//       { _id: like?.likeId },
-//       { $inc: { totalReplies: -1 } }
-//     )
-//   ]);
-
-//   // console.log("likes", likes);
-
-//   // if (!likes) {
-//   //   ctx.status = 404;
-//   //   ctx.body = { success: false, message: "Like details not found." };
-//   //   return;
-//   // }
-
-//   ctx.status = 200;
-//   ctx.body = {
-//     success: true,
-//     message: "Like details deleted successfully."
-//   };
-//   return;
-// };

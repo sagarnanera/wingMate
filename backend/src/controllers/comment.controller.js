@@ -7,6 +7,7 @@ const {
   deleteComments
 } = require("../DB/comment.db");
 const { updatePostData } = require("../DB/post.db");
+const { responseHandler } = require("../handlers/response.handler");
 
 exports.addComment = async (ctx) => {
   const { content, commentId } = ctx.request.body;
@@ -61,20 +62,27 @@ exports.addComment = async (ctx) => {
   console.log("comment on comment :", comment, rest);
 
   if (!comment) {
-    ctx.status = 400;
-    ctx.body = {
-      success: false,
-      message: "Unable to add comment, try again later!!!"
-    };
+    responseHandler(
+      ctx,
+      false,
+      "Unable to add comment, try again later!!!",
+      400,
+      null,
+      "error in db while adding comment."
+    );
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Comment added successfully!!!",
-    comment
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Comment added successfully!!!",
+    201,
+    {
+      comment
+    },
+    "comment added :"
+  );
   return;
 };
 
@@ -103,13 +111,17 @@ exports.getComments = async (ctx) => {
     sortFilter
   );
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "comments fetched successfully!!!",
-    totalComments: comments.length,
-    comments
-  };
+  responseHandler(
+    ctx,
+    true,
+    "comments fetched successfully!!!",
+    200,
+    {
+      totalComments: comments.length,
+      comments
+    },
+    "comments fetched :"
+  );
 
   return;
 };
@@ -118,8 +130,6 @@ exports.updateComment = async (ctx) => {
   const { content } = ctx.request.body;
   const { _id } = ctx.request.user;
   const { commentId } = ctx.params;
-
-  // console.log("commentData before update:", commentData);
 
   const comment = await updateCommentData(
     ctx.db,
@@ -130,17 +140,28 @@ exports.updateComment = async (ctx) => {
   console.log("comment after update:", comment);
 
   if (!comment) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Comment not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Comment not found.",
+      404,
+      null,
+      "comment not found."
+    );
     return;
   }
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Comment details updated successfully!!!",
-    comment
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Comment details updated successfully!!!",
+    200,
+    {
+      comment
+    },
+    "comments updated :"
+  );
+
   return;
 };
 
@@ -154,8 +175,15 @@ exports.deleteComment = async (ctx) => {
   });
 
   if (!comment) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "Comment not found." };
+    responseHandler(
+      ctx,
+      false,
+      "Comment not found.",
+      404,
+      null,
+      "comment not found."
+    );
+
     return;
   }
 
@@ -180,10 +208,14 @@ exports.deleteComment = async (ctx) => {
     )
   ]);
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Comment details deleted successfully."
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Comment details deleted successfully.",
+    200,
+    null,
+    "comments deleted :"
+  );
+
   return;
 };

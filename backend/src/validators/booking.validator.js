@@ -1,4 +1,5 @@
 const joi = require("joi");
+const { BOOKING_TYPE } = require("../utils/constants");
 // {
 //   propertyIds,
 //     startDate,
@@ -49,7 +50,11 @@ exports.startDateValidator = (ctx) => {
   const { error } = joi.date().iso().min("now").required().validate(startDate);
 
   if (error) {
-    return { field: "startDate", message: "Invalid start date format" };
+    return {
+      field: "startDate",
+      message: "Invalid start date format"
+      // err: error
+    };
   }
 
   return null;
@@ -118,22 +123,29 @@ exports.reasonValidator = (ctx) => {
   return null;
 };
 
-// exports.bookingTypeValidator = (ctx) => {
-//   const { bookingType } = ctx.request.body;
+exports.bookingTypeValidator = (ctx) => {
+  let { bookingType } = ctx.query;
+  if (bookingType) {
+    bookingType = bookingType.trim();
 
-//   if (!bookingType) {
-//     return {
-//       field: "bookingType",
-//       message: "Booking type is required."
-//     };
-//   }
+    console.log(bookingType.length);
+    const { error } = joi
+      .string()
+      .valid(...Object.values(BOOKING_TYPE))
+      .required()
+      .validate(bookingType);
 
-//   const {error} = joi.
+    if (error) {
+      return {
+        field: "bookingType",
+        message: "Booking type must be one of the [personal, event]."
+      };
+    }
+  }
+  ctx.query.bookingType = bookingType;
 
-//   ctx.request.body.bookingType = bookingType;
-
-//   return null;
-// };
+  return null;
+};
 
 exports.bookingIdValidator = (ctx) => {
   const { bookingId } = ctx.params;

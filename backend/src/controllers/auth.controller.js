@@ -1,6 +1,7 @@
 const { updateUserData, findUserWithPass } = require("../DB/user.db");
 const cookieOptions = require("../config/cookie.config");
 const { customError } = require("../handlers/error.handler");
+const { responseHandler } = require("../handlers/response.handler");
 const { genJWTToken, verifyJWTToken } = require("../services/jwt.service");
 const { compareHash, hashPassword } = require("../services/password.service");
 const { ROLES } = require("../utils/constants");
@@ -14,16 +15,33 @@ exports.loginController = async (ctx) => {
   const user = await findUserWithPass(ctx.db, { email: email });
 
   if (!user) {
-    ctx.status = 404;
-    ctx.body = { success: false, message: "User not found." };
+    // ctx.status = 404;
+    // ctx.body = { success: false, message: "User not found." };
+
+    responseHandler(
+      ctx,
+      false,
+      "User not found.",
+      404,
+      null,
+      "User not found in login."
+    );
     return;
   }
 
   const isMatch = await compareHash(password, user.password);
 
   if (!isMatch) {
-    ctx.status = 400;
-    ctx.body = { success: false, message: "Invalid Credentials !!!" };
+    // ctx.status = 400;
+    // ctx.body = { success: false, message: "Invalid Credentials !!!" };
+    responseHandler(
+      ctx,
+      false,
+      "Invalid Credentials !!!",
+      400,
+      null,
+      "Invalid Credentials !!!"
+    );
     return;
   }
 
@@ -43,13 +61,24 @@ exports.loginController = async (ctx) => {
 
   ctx.cookies.set("token", token, cookieOptions);
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "logged in successfully",
-    user: userData,
-    token: token
-  };
+  // ctx.status = 200;
+  // ctx.body = {
+  //   success: true,
+  //   message: "logged in successfully",
+  //   user: userData,
+  //   token: token
+  // };
+
+  responseHandler(
+    ctx,
+    true,
+    "logged in successfully",
+    200,
+    { user: userData, token },
+    "user logged in."
+  );
+
+  return;
 };
 
 exports.registerController = async (ctx) => {
@@ -82,7 +111,8 @@ exports.registerController = async (ctx) => {
         role: ROLES.RESIDENT,
         totalPost: 0,
         name,
-        contact
+        contact,
+        createdOn: new Date()
       },
       $unset: {
         invitationToken: 1
@@ -91,11 +121,20 @@ exports.registerController = async (ctx) => {
   );
 
   if (!user) {
-    ctx.status = 404;
-    ctx.body = {
-      success: false,
-      message: "User not found or already registered!!!"
-    };
+    // ctx.status = 404;
+    // ctx.body = {
+    //   success: false,
+    //   message: "User not found or already registered!!!"
+    // };
+
+    responseHandler(
+      ctx,
+      false,
+      "User not found or already registered!!!",
+      404,
+      null,
+      "User not found or already registered in register. "
+    );
     return;
   }
 
@@ -109,13 +148,22 @@ exports.registerController = async (ctx) => {
 
   ctx.cookies.set("token", token, cookieOptions);
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Registered in successfully",
-    user,
-    token: token
-  };
+  // ctx.status = 200;
+  // ctx.body = {
+  //   success: true,
+  //   message: "Registered in successfully",
+  //   user,
+  //   token: token
+  // };
+
+  responseHandler(
+    ctx,
+    true,
+    "Registered in successfully",
+    200,
+    { user, token },
+    "user registered."
+  );
 
   return;
 };
@@ -153,12 +201,14 @@ exports.ForgotPass = async (ctx) => {
 
   const resetPassLink = `http://localhost:8080/api/auth/reset-password/${token}`;
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Successfully generated reset password link.",
-    resetPassLink
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Successfully generated reset password link.",
+    200,
+    { resetPassLink },
+    "in password forgot"
+  );
   return;
 };
 
@@ -183,10 +233,14 @@ exports.ResetPass = async (ctx) => {
     }
   );
 
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    message: "Password reset successful."
-  };
+  responseHandler(
+    ctx,
+    true,
+    "Password reset successful.",
+    200,
+    null,
+    "password reset successful."
+  );
+
   return;
 };
