@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Avatar,
   Card,
@@ -8,6 +9,7 @@ import {
   Sidebar,
   ToggleSwitch,
 } from "flowbite-react";
+import { NavLink, Outlet } from "react-router-dom";
 import {
   HiArrowSmRight,
   HiChartPie,
@@ -18,17 +20,18 @@ import {
   HiViewBoards,
   HiOutlineArrowCircleRight,
   HiOutlineOfficeBuilding,
+  HiMenuAlt4,
 } from "react-icons/hi";
-
 import {
   MdOutlineEvent,
   MdBookOnline,
   MdNaturePeople,
   MdOutlinePeople,
 } from "react-icons/md";
-import { Link, NavLink, Outlet } from "react-router-dom";
 
-const NavigationBar = ({ societyLogo, societyName }) => {
+const NavigationBar = ({ societyLogo = true, societyName }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const sidebarItems = [
     {
       title: "Dashboard",
@@ -72,13 +75,20 @@ const NavigationBar = ({ societyLogo, societyName }) => {
     },
   ];
 
-  societyLogo = true;
   return (
     <>
       <Sidebar
         id="logo-sidebar"
-        className="fixed top-0 left-0 pt-16 w-64 h-screen transition-transform -translate-x-full bg-slate-200 border-r border-gray-200 sm:translate-x-0"
+        className={`fixed top-0 left-0 pt-16 w-64 z-20 h-screen transition-transform bg-slate-300 border-r border-gray-200 sm:translate-x-0 shadow-lg ${
+          sidebarOpen ? "" : "-translate-x-full"
+        }`}
         aria-label="Sidebar"
+        theme={{
+          root: {
+            inner:
+              "h-full overflow-y-auto overflow-x-hidden rounded bg-slate-350 px-3 py-4 dark:bg-gray-800",
+          },
+        }}
       >
         <NavLink to={"/"}>
           {societyLogo ? (
@@ -90,40 +100,11 @@ const NavigationBar = ({ societyLogo, societyName }) => {
               {societyName || "Gokuldham society"}
             </Sidebar.Logo>
           ) : (
-            // <span>{societyName}</span>
             <Card className="mb-4 !p-0 text-xl font-semibold text-gray-900 dark:text-white">
-              societyName
+              Gokuldham society
             </Card>
           )}
         </NavLink>
-
-        {/* <Sidebar.Items>
-          <Sidebar.ItemGroup>
-            <NavLink to={"#"}>
-              <Sidebar.Item href="#" icon={HiChartPie}>
-                Dashboard
-              </Sidebar.Item>
-            </NavLink>
-            <NavLink to={"#"}>
-              <Sidebar.Item href="#" icon={HiViewBoards}>
-                Kanban
-              </Sidebar.Item>
-            </NavLink>
-            <NavLink to={"#"}>
-              <Sidebar.Item href="#" icon={HiInbox}>
-                Inbox
-              </Sidebar.Item>
-            </NavLink>
-            <NavLink to={"/user"}>
-              <Sidebar.Item icon={HiUser}>Users</Sidebar.Item>
-            </NavLink>
-            <NavLink to={"#"}>
-              <Sidebar.Item href="#" icon={HiShoppingBag}>
-                Products
-              </Sidebar.Item>
-            </NavLink>
-          </Sidebar.ItemGroup>
-        </Sidebar.Items> */}
 
         {sidebarItems && (
           <Sidebar.Items>
@@ -141,20 +122,24 @@ const NavigationBar = ({ societyLogo, societyName }) => {
       </Sidebar>
 
       <Navbar
-        className="fixed top-0 z-20 w-full bg-slate-200 border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+        className="fixed top-0 z-20 w-full bg-slate-300 border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700 shadow-lg"
         aria-label="Navbar"
       >
-        <NavLink to={"/"}>
-          <Navbar.Brand>
-            <img
-              src="/assets/wingMate-icon.png"
-              alt="wingMate logo"
-              className="w-12 h-10"
-            />
-            <span className="mr-2 font-semibold text-2xl text-gray-900 dark:text-whites ">
-              wingMate
-            </span>
-          </Navbar.Brand>
+        <Navbar.Toggle
+          className="block sm:hidden"
+          icon={<HiMenuAlt4 size={24} />}
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        />
+
+        <NavLink to={"/"} className="flex items-center">
+          <img
+            src="/assets/wingMate-icon.png"
+            alt="wingMate logo"
+            className="w-12 h-10"
+          />
+          <span className="ml-2 font-semibold text-2xl text-gray-900 dark:text-whites">
+            wingMate
+          </span>
         </NavLink>
 
         <NavbarCollapse>
@@ -170,9 +155,9 @@ const NavigationBar = ({ societyLogo, societyName }) => {
             img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
             rounded
           />
-          <Link to={"/logout"}>
+          <NavLink to={"/logout"}>
             <HiOutlineArrowCircleRight size={35} />
-          </Link>
+          </NavLink>
         </div>
       </Navbar>
 
@@ -182,6 +167,7 @@ const NavigationBar = ({ societyLogo, societyName }) => {
     </>
   );
 };
+
 export default NavigationBar;
 
 {

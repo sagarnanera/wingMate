@@ -27,9 +27,11 @@ const withDndFileUpload = (Component) => {
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`${isDragging ? "border-2 border-dashed border-black rounded-lg" : ""} `}
+        className={`${
+          isDragging ? "border-2 border-dashed border-black rounded-lg" : ""
+        } `}
       >
-        <Component {...props} files={files} />
+        <Component {...props} draggedFiles={files} />
       </div>
     );
   };

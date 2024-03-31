@@ -1,17 +1,14 @@
+/* eslint-disable no-unused-vars */
+
 // booking form, which will take name, description, fees per person, property ids, start date, end date with a submit button.
 
 import React, { useState } from "react";
-import {
-  Button,
-  Card,
-  FloatingLabel,
-  Modal,
-  Select,
-  Textarea,
-} from "flowbite-react";
+import PropTypes from "prop-types";
+import { Button, FloatingLabel, Modal, Textarea } from "flowbite-react";
 
 import { Multiselect } from "multiselect-react-dropdown";
-import { DateRange, DateRangePicker } from "react-date-range";
+import DateRangePicker from "../shared/DateRangePicker";
+import Select from "react-select";
 
 const BookingForm = ({
   initialData,
@@ -21,7 +18,6 @@ const BookingForm = ({
   onSubmit,
 }) => {
   const [bookingData, setBookingData] = useState(initialData);
-  const [showDateRange, setShowDateRange] = useState(false); // Add state variable for DateRange visibility
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,23 +30,22 @@ const BookingForm = ({
     onSubmit(bookingData);
   };
 
-  const handleDateRangeClick = () => {
-    setShowDateRange(!showDateRange); // Toggle DateRange visibility
-  };
-
-  const handleDateRangeChange = (item) => {
-    console.log(item);
-    setShowDateRange(false); // Hide DateRange after selection
-    setBookingData({
-      ...bookingData,
-      startDate: item.selection.startDate,
-      endDate: item.selection.endDate,
-    });
+  const handleDateRangeChange = (date) => {
+    if (date.from === "startDate") {
+      setBookingData({
+        ...bookingData,
+        startDate: date.startDate,
+      });
+    } else {
+      setBookingData({
+        ...bookingData,
+        endDate: date.endDate,
+      });
+    }
   };
 
   const closeModal = () => {
     setBookingData({});
-    setShowDateRange(false);
     handleClose();
   };
 
@@ -96,32 +91,14 @@ const BookingForm = ({
             />
           </div>
 
-          <FloatingLabel
-            variant="outlined"
-            label="Booking dates"
-            type="text"
-            value={`${bookingData?.startDate?.toDateString() || "dd/mm/yyyy"} 
-                   to   
-                ${bookingData?.endDate?.toDateString() || "dd/mm/yyyy"}`}
-            onClick={handleDateRangeClick}
-            readOnly={true}
-          />
-
-          <div className="date-range-picker-wrapper">
-            {showDateRange && (
-              <DateRange
-                editableDateInputs={true}
-                onChange={handleDateRangeChange}
-                moveRangeOnFirstSelection={false}
-                ranges={[
-                  {
-                    startDate: bookingData?.startDate,
-                    endDate: bookingData?.endDate,
-                    key: "selection",
-                  },
-                ]}
-              />
-            )}
+          <div className="flex justify-center items-center gap-2">
+            <DateRangePicker
+              dateRange={{
+                startDate: bookingData.startDate || "",
+                endDate: bookingData.endDate || "",
+              }}
+              handleDateChange={handleDateRangeChange}
+            />
           </div>
 
           {/* properties should be multi select dropdown, only editable if we are creating event, not on editing */}
@@ -137,6 +114,14 @@ const BookingForm = ({
               }}
               onRemove={(selectedList) => {
                 console.log(selectedList);
+              }}
+            />
+
+            <Select
+              options={bookingData?.propertyIds}
+              isMulti
+              onChange={(selectedList) => {
+                setBookingData({ ...bookingData, propertyIds: selectedList });
               }}
             />
           </div>
@@ -159,6 +144,14 @@ const BookingForm = ({
       </Modal.Footer>
     </Modal>
   );
+};
+
+BookingForm.propTypes = {
+  initialData: PropTypes.object,
+  visible: PropTypes.bool,
+  source: PropTypes.string,
+  handleClose: PropTypes.func,
+  onSubmit: PropTypes.func,
 };
 
 export default BookingForm;
