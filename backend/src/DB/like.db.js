@@ -33,22 +33,22 @@ exports.findLikes = async (db, searchQuery, skip, limit, sort) => {
   return likes;
 };
 
-exports.updateLikeData = async (db, searchQuery, updateQuery) => {
-  const LikeCollection = db.collection("likes");
+// exports.updateLikeData = async (db, searchQuery, updateQuery) => {
+//   const LikeCollection = db.collection("likes");
 
-  const like = await LikeCollection.findOneAndUpdate(searchQuery, updateQuery, {
-    returnDocument: "after"
-  });
+//   const like = await LikeCollection.findOneAndUpdate(searchQuery, updateQuery, {
+//     returnDocument: "after"
+//   });
 
-  return like;
-};
+//   return like;
+// };
 
-exports.deleteLikeData = async (db, searchQuery) => {
-  const LikeCollection = db.collection("likes");
+// exports.deleteLikeData = async (db, searchQuery) => {
+//   const LikeCollection = db.collection("likes");
 
-  const like = await LikeCollection.findOneAndDelete(searchQuery);
+//   const like = await LikeCollection.findOneAndDelete(searchQuery);
 
-  console.log(like, searchQuery);
+//   console.log(like, searchQuery);
 
-  return like;
-};
+//   return like;
+// };

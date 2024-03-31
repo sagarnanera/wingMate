@@ -9,12 +9,18 @@ const FACEBOOK_BASE_URL = process.env.FACEBOOK_BASE_URL;
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 const FACEBOOK_PAGE_TOKEN = process.env.FACEBOOK_PAGE_TOKEN;
 
+const fbUrl = {
+  image: `${FACEBOOK_BASE_URL}/${FACEBOOK_PAGE_ID}/photos?access_token=${FACEBOOK_PAGE_TOKEN}`,
+  gif: `${FACEBOOK_BASE_URL}/${FACEBOOK_PAGE_ID}/videos?access_token=${FACEBOOK_PAGE_TOKEN}`,
+  video: `${FACEBOOK_BASE_URL}/${FACEBOOK_PAGE_ID}/videos?access_token=${FACEBOOK_PAGE_TOKEN}`,
+  text: `${FACEBOOK_BASE_URL}/${FACEBOOK_PAGE_ID}/feed?access_token=${FACEBOOK_PAGE_TOKEN}`
+};
+
 /**
  *
  * @param {*} postData
  * @returns
  */
-
 exports.postToFacebook = async (postData) => {
   const { title, text, media, contentType } = postData;
   const facebookPostData = {};
@@ -24,15 +30,14 @@ exports.postToFacebook = async (postData) => {
   } else if (contentType === POST_CONTENT_TYPE.VIDEO) {
     facebookPostData["description"] = title;
     facebookPostData["file_url"] = media[0];
+
+    // TODO : if
   } else {
     facebookPostData["message"] = title;
-    facebookPostData["link"] = media[0];
+    facebookPostData["url"] = media[0];
   }
-  const url = `${FACEBOOK_BASE_URL}/${FACEBOOK_PAGE_ID}/${
-    contentType === POST_CONTENT_TYPE.VIDEO ? "videos" : "feed"
-  }?access_token=${FACEBOOK_PAGE_TOKEN}`;
 
-  console.log(url, 26);
+  const url = fbUrl[contentType];
 
   try {
     const res = await fetch(url, {
@@ -48,7 +53,9 @@ exports.postToFacebook = async (postData) => {
 
       console.log(post);
 
-      return { postId: post.id, pageId: post.id.split("_")[0] };
+      if (post) {
+        return { postId: post.id, pageId: post?.id?.split("_")[0] };
+      }
     } else {
       const errorResponse = await res.json();
       console.error("Error sharing post on Facebook:", errorResponse);

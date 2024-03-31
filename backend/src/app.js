@@ -22,6 +22,20 @@ const postRouter = require("./routes/post.route");
 const commentRouter = require("./routes/comment.route");
 const likeRouter = require("./routes/like.route");
 
+const routes = [
+  authRouter,
+  userRouter,
+  societyRouter,
+  wingRouter,
+  propertyRouter,
+  postRouter,
+  bookingRouter,
+  eventRouter,
+  postRouter,
+  commentRouter,
+  likeRouter
+];
+
 // logger
 app.use(async (ctx, next) => {
   await next();
@@ -34,16 +48,7 @@ app.use(invalidJsonHandler);
 app.use(bodyParser());
 app.use(tryCatchHandler);
 
-app.use(authRouter.routes()); // .use(authRouter.allowedMethods());
-app.use(userRouter.routes());
-app.use(societyRouter.routes());
-app.use(wingRouter.routes());
-app.use(propertyRouter.routes());
-app.use(bookingRouter.routes());
-app.use(eventRouter.routes());
-app.use(postRouter.routes());
-app.use(commentRouter.routes());
-app.use(likeRouter.routes());
+routes.forEach((route) => app.use(route.routes()));
 
 app.use(notFoundHandler);
 app.on("error", ErrorHandler);

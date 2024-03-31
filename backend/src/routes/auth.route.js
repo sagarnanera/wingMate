@@ -4,7 +4,7 @@ const {
   registerController,
   logoutController,
   ForgotPass,
-  ResetPass
+  ResetPass,
 } = require("../controllers/auth.controller");
 const authenticate = require("../middlewares/auth.middleware");
 const { AllRoles, ROLES } = require("../utils/constants");
@@ -14,7 +14,7 @@ const {
   emailValidator,
   contactValidator,
   passwordValidator,
-  resetTokenValidator
+  resetTokenValidator,
 } = require("../validators/user.validator");
 const { wingIdValidator } = require("../validators/wing.validator");
 const dbValidate = require("../middlewares/dbValidate.middleware");
@@ -22,7 +22,7 @@ const {
   resetLinkValidator,
   isUserValidValidator,
   isEmailExistValidator,
-  wingExistValidator
+  wingExistValidator,
 } = require("../validators/db.validator");
 const { invitationTokenValidator } = require("../validators/society.validator");
 const router = new KoaRouter({ prefix: "/api/v1/auth" });
@@ -34,7 +34,7 @@ router.post(
     nameValidator,
     contactValidator,
     wingIdValidator,
-    invitationTokenValidator
+    invitationTokenValidator,
   ]),
   dbValidate([wingExistValidator]),
   registerController

@@ -1,14 +1,13 @@
-import { useState } from "react";
-import "./App.css";
+import Router from "./routes/routes";
 
 function App() {
-  const [count, setCount] = useState(0);
+  // const user = localStorage.getItem("user");
 
-  return (
-    <>
-      <h1>wingMate</h1>
-    </>
-  );
+  // if (user) {
+  return <Router />;
+  // }
+
+  // return <Login />;
 }
 
 export default App;
