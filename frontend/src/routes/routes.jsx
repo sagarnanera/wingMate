@@ -25,8 +25,8 @@ const Router = () => {
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/resident-register" element={<ResidenceRegisterPage />} />
+        <Route path="/society-register" element={<Register />} />
+        <Route path="/register" element={<ResidenceRegisterPage />} />
 
         <Route path="/" element={<PrivateRoutes component={NavigationBar} />}>
           <Route path="" element={<Home />} />

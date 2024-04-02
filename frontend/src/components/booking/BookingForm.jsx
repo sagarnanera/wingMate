@@ -6,7 +6,6 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Button, FloatingLabel, Modal, Textarea } from "flowbite-react";
 
-import { Multiselect } from "multiselect-react-dropdown";
 import DateRangePicker from "../shared/DateRangePicker";
 import Select from "react-select";
 
@@ -103,20 +102,6 @@ const BookingForm = ({
 
           {/* properties should be multi select dropdown, only editable if we are creating event, not on editing */}
           <div className="my-4">
-            <Multiselect
-              isObject={false}
-              placeholder="Select properties"
-              options={bookingData?.propertyIds}
-              selectedValues={bookingData?.propertyIds}
-              displayValue="name"
-              onSelect={(selectedList) => {
-                console.log(selectedList);
-              }}
-              onRemove={(selectedList) => {
-                console.log(selectedList);
-              }}
-            />
-
             <Select
               options={bookingData?.propertyIds}
               isMulti
