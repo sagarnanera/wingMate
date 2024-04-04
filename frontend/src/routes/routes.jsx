@@ -29,7 +29,7 @@ const Router = () => {
         <Route path="/register" element={<ResidenceRegisterPage />} />
 
         <Route path="/" element={<PrivateRoutes component={NavigationBar} />}>
-          <Route path="" element={<Home />} />
+          <Route index element={<Home />} />
           <Route path="/feed" element={<SocietyFeed />} />
 
           {/* society routes */}

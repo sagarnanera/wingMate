@@ -1,9 +1,10 @@
 const koa = require("koa");
 const bodyParser = require("koa-bodyparser");
+const cors = require("@koa/cors");
 const {
   notFoundHandler,
   invalidJsonHandler,
-  ErrorHandler
+  ErrorHandler,
 } = require("./handlers/error.handler");
 const tryCatchHandler = require("./handlers/globalTryCatch.handler");
 
@@ -33,7 +34,7 @@ const routes = [
   eventRouter,
   postRouter,
   commentRouter,
-  likeRouter
+  likeRouter,
 ];
 
 // logger
@@ -42,6 +43,13 @@ app.use(async (ctx, next) => {
   const rt = ctx.response.get("X-Response-Time");
   console.log(`${ctx.method} ${ctx.url} - ${rt}`);
 });
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 // middlewares
 app.use(invalidJsonHandler);
