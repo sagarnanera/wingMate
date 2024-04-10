@@ -19,6 +19,7 @@ import BookingsPage from "../pages/BookingsPage";
 import BookingDetailsPage from "../pages/BookingDetailsPage";
 import SocietyDetailsPage from "../pages/SocietyDetailsPage";
 import EventsPage from "../pages/EventsPage";
+import ProfilePage from "../pages/ProfilePage";
 
 const Router = () => {
   return (
@@ -30,7 +31,7 @@ const Router = () => {
 
         <Route path="/" element={<PrivateRoutes component={NavigationBar} />}>
           <Route index element={<Home />} />
-          <Route path="/feed" element={<SocietyFeed />} />
+          <Route path="/wing-feed" element={<Home />} />
 
           {/* society routes */}
           <Route path="/society" element={<SocietyDetailsPage />} />
@@ -40,7 +41,7 @@ const Router = () => {
 
           {/* residents routes */}
           <Route path="/residents" element={<ResidentsPage />} />
-          <Route path="/residents/:userId" element={<ResidentProfile />} />
+          <Route path="/residents/:userId" element={<ProfilePage />} />
 
           {/* wings routes */}
           <Route path="/wings" element={<WingsPage />} />

@@ -13,8 +13,8 @@ export const register = async (data) => {
   return response.data;
 };
 
-export const societyRegister = async () => {
-  const response = await post(`/auth/society-register`);
+export const societyRegister = async (data) => {
+  const response = await post(`/society/register`, data);
   return response.data;
 };
 

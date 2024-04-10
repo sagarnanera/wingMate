@@ -6,36 +6,44 @@ import WingCard from "../components/wing/WingCard";
 import { useNavigate } from "react-router-dom";
 
 import { MdAssignmentAdd, MdOutlineKeyboardBackspace } from "react-icons/md";
+import WingForm from "../components/wing/WingForm";
+import { getWingsAction } from "../actions/wingAction";
+import { useDispatch, useSelector } from "react-redux";
+import Loader from "../components/shared/Loader";
 
 const WingsPage = () => {
   const navigate = useNavigate();
 
-  const [wings, setWings] = useState([
-    {
-      _id: "1",
-      name: "wing A",
-      area: 8000,
-      location: "somewhere outside society",
-    },
-    {
-      _id: "2",
-      name: "wing B",
-      area: 9000,
-      location: "somewhere inside society",
-    },
-    {
-      _id: "3",
-      name: "wing C",
-      area: 10000,
-      location: "somewhere inside society",
-    },
-    {
-      _id: "4",
-      name: "wing D",
-      area: 11000,
-      location: "somewhere outside society",
-    },
-  ]);
+  // const [wings, setWings] = useState([
+  //   {
+  //     _id: "1",
+  //     name: "wing A",
+  //     area: 8000,
+  //     location: "somewhere outside society",
+  //   },
+  //   {
+  //     _id: "2",
+  //     name: "wing B",
+  //     area: 9000,
+  //     location: "somewhere inside society",
+  //   },
+  //   {
+  //     _id: "3",
+  //     name: "wing C",
+  //     area: 10000,
+  //     location: "somewhere inside society",
+  //   },
+  //   {
+  //     _id: "4",
+  //     name: "wing D",
+  //     area: 11000,
+  //     location: "somewhere outside society",
+  //   },
+  // ]);
+
+  const dispatch = useDispatch();
+
+  const [isWingFormVisible, setWingFormVisible] = useState(false);
 
   // TODO: implement debounce for the search filter
   const [searchFilter, setSearchFilter] = useState("");
@@ -48,18 +56,39 @@ const WingsPage = () => {
 
   // TODO : Fetch wings from the backend
 
-  // useEffect(() => {
-  //     const fetchWings = async () => {
-  //         const response = await fetch("/api/wings");
-  //         const data = await response.json();
-  //         setWings(data);
-  //     };
+  useEffect(() => {
+    dispatch(getWingsAction({}));
+  }, [dispatch]);
 
-  //     fetchWings();
-
-  // }, []);
+  const { wings, loading, error } = useSelector((state) => state.wing);
 
   const handleWingDelete = (wingId) => {};
+
+  const handleChange = (wingId) => {};
+
+  const handleSubmit = (wingId) => {};
+
+  if (loading) {
+    return (
+      <Card className="w-full h-full flex justify-center items-center p-4 mt-4">
+        <Loader size={"2xl"} />
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="w-full flex justify-center items-center p-4 mt-4">
+        <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">
+          Error fetching properties
+        </h1>
+        <Button className="" onClick={() => location.reload()}>
+          {" "}
+          Refresh page
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -84,7 +113,7 @@ const WingsPage = () => {
           <Button
             color="green"
             className="my-4 flex justify-around items-center"
-            // onClick={() => setPropertyFormVisible(true)}
+            onClick={() => setWingFormVisible(true)}
           >
             <MdAssignmentAdd className="lg:mr-2 h-4 w-4" />
             <span className="hidden lg:block">Add Wing</span>
@@ -117,7 +146,7 @@ const WingsPage = () => {
         </div>
       </Card>
 
-      {/* Display Resiwings */}
+      {/* Display wings */}
       {wings.length === 0 ? (
         <Card className="w-full flex justify-center items-center p-4 mt-4">
           <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">
@@ -135,6 +164,14 @@ const WingsPage = () => {
           ))}
         </div>
       )}
+
+      <WingForm
+        closeModal={() => setWingFormVisible(false)}
+        source="add"
+        initialData={{}}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+      />
     </>
   );
 };

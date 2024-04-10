@@ -3,7 +3,7 @@
 import { post, get, put, deleteReq } from "../utils/request";
 
 export const getResidents = async (params) => {
-  const response = await get(`/residents`, { params });
+  const response = await get(`/user/users`, { params });
   return response.data;
 };
 

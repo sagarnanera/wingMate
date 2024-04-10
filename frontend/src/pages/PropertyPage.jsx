@@ -6,40 +6,51 @@ import { MdAssignmentAdd, MdOutlineKeyboardBackspace } from "react-icons/md";
 
 import PropertyCard from "../components/property/PropertyCard";
 import { useNavigate } from "react-router-dom";
+import { getPropertiesAction } from "../actions/propertyAction";
+import { useDispatch, useSelector } from "react-redux";
+import Loader from "../components/shared/Loader";
 
 const PropertyPage = () => {
   const navigate = useNavigate();
 
-  const [properties, setProperties] = useState([
-    {
-      _id: "1",
-      name: "property A",
-      area: 8000,
-      location: "somewhere outside society",
-      rentPerDay: 1000,
-    },
-    {
-      _id: "2",
-      name: "property B",
-      area: 9000,
-      location: "somewhere inside society",
-      rentPerDay: 2000,
-    },
-    {
-      _id: "3",
-      name: "property C",
-      area: 10000,
-      location: "somewhere inside society",
-      rentPerDay: 3000,
-    },
-    {
-      _id: "4",
-      name: "property D",
-      area: 11000,
-      location: "somewhere outside society",
-      rentPerDay: 4000,
-    },
-  ]);
+  // const [properties, setProperties] = useState([
+  //   {
+  //     _id: "1",
+  //     name: "property A",
+  //     area: 8000,
+  //     location: "somewhere outside society",
+  //     rentPerDay: 1000,
+  //   },
+  //   {
+  //     _id: "2",
+  //     name: "property B",
+  //     area: 9000,
+  //     location: "somewhere inside society",
+  //     rentPerDay: 2000,
+  //   },
+  //   {
+  //     _id: "3",
+  //     name: "property C",
+  //     area: 10000,
+  //     location: "somewhere inside society",
+  //     rentPerDay: 3000,
+  //   },
+  //   {
+  //     _id: "4",
+  //     name: "property D",
+  //     area: 11000,
+  //     location: "somewhere outside society",
+  //     rentPerDay: 4000,
+  //   },
+  // ]);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getPropertiesAction({}));
+  }, [dispatch]);
+
+  const { properties, loading, error } = useSelector((state) => state.property);
 
   const [isPropertyFormVisible, setPropertyFormVisible] = useState(false);
 
@@ -66,6 +77,28 @@ const PropertyPage = () => {
   // }, []);
 
   const handlePropertyDelete = () => {};
+
+  if (loading) {
+    return (
+      <Card className="w-full h-full flex justify-center items-center p-4 mt-4">
+        <Loader size={"2xl"} />
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="w-full flex justify-center items-center p-4 mt-4">
+        <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">
+          Error fetching properties
+        </h1>
+        <Button className="" onClick={() => location.reload()}>
+          {" "}
+          Refresh page
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <>

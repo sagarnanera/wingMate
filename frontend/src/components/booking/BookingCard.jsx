@@ -17,6 +17,7 @@ import { Button, Card } from "flowbite-react";
 
 import { MdDeleteOutline, MdEditCalendar } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { formateDate } from "../../utils/formateDate";
 
 const BookingCard = ({
   bookingData,
@@ -32,9 +33,7 @@ const BookingCard = ({
         </h1>
       </div>
       <div>
-        <p className="text-gray-600 mb-2">
-          Description: {bookingData.description}
-        </p>
+        <p className="text-gray-600 mb-2">Description: {bookingData.reason}</p>
         <p className="text-gray-600 mb-2">
           Fees per person: {bookingData.feesPerPerson}
         </p>
@@ -42,10 +41,10 @@ const BookingCard = ({
           Property Ids: {bookingData.propertyIds}
         </p>
         <p className="text-gray-600 mb-2">
-          Start Date: {bookingData?.startDate?.toDateString()}
+          Start Date: {formateDate(bookingData?.startDate)}
         </p>
         <p className="text-gray-600 mb-2">
-          End Date: {bookingData?.endDate?.toDateString()}
+          End Date: {formateDate(bookingData?.endDate)}
         </p>
       </div>
       {/* <div className="flex gap-2 justify-between items-center mt-4">

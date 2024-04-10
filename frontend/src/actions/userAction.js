@@ -6,15 +6,14 @@ import { getUser, updateUser } from "../api/userAPI";
 export const getUserAction = createAsyncThunk(
   "getUser",
   async (_, { rejectWithValue }) => {
-    console.log("getUserAction called");
     try {
       const response = await getUser();
 
-      if (!response.success || !response.data) {
+      if (!response.success) {
         return rejectWithValue(response.message);
       }
 
-      return response;
+      return response.user;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }

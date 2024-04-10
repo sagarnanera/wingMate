@@ -22,15 +22,15 @@ const EventCard = ({ eventData }) => {
         <p className="text-gray-600 mb-2">
           Fees per person: {eventData.feesPerPerson}
         </p>
-        <p className="text-gray-600 mb-2">
-          Property Ids: {eventData.propertyIds}
-        </p>
-        <p className="text-gray-600 mb-2">
-          Start Date: {eventData?.startDate?.toDateString()}
-        </p>
-        <p className="text-gray-600 mb-2">
-          End Date: {eventData?.endDate?.toDateString()}
-        </p>
+        <p className="text-gray-600 mb-2">Properties: </p>
+        {eventData?.properties?.length &&
+          eventData?.properties?.map((property) => (
+            <p key={property._id} className="text-gray-600 mb-2">
+              {property?.name}
+            </p>
+          ))}
+        <p className="text-gray-600 mb-2">Start Date: {eventData?.startDate}</p>
+        <p className="text-gray-600 mb-2">End Date: {eventData?.endDate}</p>
       </div>
       {/* view more button, which will navigate to event details page */}
       <Button

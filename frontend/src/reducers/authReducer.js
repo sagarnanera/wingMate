@@ -35,19 +35,16 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase("login/pending", (state) => {
-      console.log("login/pending called");
       state.loading = true;
     });
     builder.addCase("login/rejected", (state, action) => {
-      console.log("login/rejected called", action);
-      showToast(action.payload, "error");
       state.error = action.payload;
       state.loading = false;
     });
     builder.addCase("login/fulfilled", (state, action) => {
-      console.log("login/fulfilled called");
       state.loading = false;
     });
+
     builder.addCase("register/pending", (state) => {
       state.loading = true;
     });
@@ -55,6 +52,10 @@ const authSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     });
+    builder.addCase("register/fulfilled", (state, action) => {
+      state.loading = false;
+    });
+
     builder.addCase("societyRegister/pending", (state) => {
       state.loading = true;
     });
@@ -62,11 +63,29 @@ const authSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     });
+    builder.addCase("societyRegister/fulfilled", (state, action) => {
+      state.loading = false;
+    });
+
     builder.addCase("forgotPassword/pending", (state) => {
       state.loading = true;
     });
     builder.addCase("forgotPassword/rejected", (state, action) => {
       state.error = action.payload;
+      state.loading = false;
+    });
+    builder.addCase("forgotPassword/fulfilled", (state, action) => {
+      state.loading = false;
+    });
+
+    builder.addCase("logout/pending", (state) => {
+      state.loading = true;
+    });
+    builder.addCase("logout/rejected", (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    });
+    builder.addCase("logout/fulfilled", (state, action) => {
       state.loading = false;
     });
   },

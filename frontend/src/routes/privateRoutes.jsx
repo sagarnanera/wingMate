@@ -2,16 +2,19 @@
 
 import React from "react";
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 import PropTypes from "prop-types";
 
 const PrivateRoutes = ({ component: Component, ...rest }) => {
   const { user } = useSelector((state) => state.user);
+  const location = useLocation();
   if (user) {
+    console.log("here");
     return <Component {...rest} />;
   }
-  return <Navigate to="/login" replace />;
+  console.log("flandsfklasdlfnad");
+  return <Navigate to="/login" state={location.pathname} />;
 };
 
 PrivateRoutes.propTypes = {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Checkbox, FloatingLabel } from "flowbite-react";
+import { Button, Card, Checkbox, FloatingLabel, Spinner } from "flowbite-react";
 import { Link, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginAction } from "../../actions/authAction";
@@ -99,12 +99,12 @@ const LoginCard = () => {
           onClick={handleSubmit}
           disabled={loading}
         >
-          {loading ? <Loader /> : "Sign in"}
+          {loading ? <Loader variant={"tiny"} size={"xl"} /> : "Sign in"}
         </Button>
         <p className="text-sm font-light text-gray-500 dark:text-gray-400">
           Don&apos;t have an account yet?{" "}
           <Link
-            to="/register"
+            to="/society-register"
             className="font-medium text-primary-600 hover:underline dark:text-primary-500"
           >
             Sign up

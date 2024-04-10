@@ -9,48 +9,59 @@ import { MdAssignmentAdd, MdOutlineKeyboardBackspace } from "react-icons/md";
 import BookingCard from "../components/booking/BookingCard";
 import BookingForm from "../components/booking/BookingForm";
 import DateRangePicker from "../components/shared/DateRangePicker";
+import { useDispatch, useSelector } from "react-redux";
+import { getBookingAction, getBookingsAction } from "../actions/bookingAction";
+import Loader from "../components/shared/Loader";
 
 const BookingsPage = () => {
   const navigate = useNavigate();
 
-  const [bookings, setBookings] = useState([
-    {
-      _id: "1",
-      name: "booking A",
-      description: "some description",
-      feesPerPerson: 1000,
-      propertyIds: ["1", "2"],
-      startDate: new Date("2021-10-01"),
-      endDate: new Date("2021-10-10"),
-    },
-    {
-      _id: "2",
-      name: "booking B",
-      description: "some description",
-      feesPerPerson: 2000,
-      propertyIds: ["3", "4"],
-      startDate: new Date("2021-10-11"),
-      endDate: new Date("2021-10-20"),
-    },
-    {
-      _id: "3",
-      name: "booking C",
-      description: "some description",
-      feesPerPerson: 3000,
-      propertyIds: ["1", "3"],
-      startDate: new Date("2021-10-21"),
-      endDate: new Date("2021-10-30"),
-    },
-    {
-      _id: "4",
-      name: "booking D",
-      description: "some description",
-      feesPerPerson: 4000,
-      propertyIds: ["2", "4"],
-      startDate: new Date("2021-11-01"),
-      endDate: new Date("2021-11-10"),
-    },
-  ]);
+  // const [bookings, setBookings] = useState([
+  //   {
+  //     _id: "1",
+  //     name: "booking A",
+  //     description: "some description",
+  //     feesPerPerson: 1000,
+  //     propertyIds: ["1", "2"],
+  //     startDate: new Date("2021-10-01"),
+  //     endDate: new Date("2021-10-10"),
+  //   },
+  //   {
+  //     _id: "2",
+  //     name: "booking B",
+  //     description: "some description",
+  //     feesPerPerson: 2000,
+  //     propertyIds: ["3", "4"],
+  //     startDate: new Date("2021-10-11"),
+  //     endDate: new Date("2021-10-20"),
+  //   },
+  //   {
+  //     _id: "3",
+  //     name: "booking C",
+  //     description: "some description",
+  //     feesPerPerson: 3000,
+  //     propertyIds: ["1", "3"],
+  //     startDate: new Date("2021-10-21"),
+  //     endDate: new Date("2021-10-30"),
+  //   },
+  //   {
+  //     _id: "4",
+  //     name: "booking D",
+  //     description: "some description",
+  //     feesPerPerson: 4000,
+  //     propertyIds: ["2", "4"],
+  //     startDate: new Date("2021-11-01"),
+  //     endDate: new Date("2021-11-10"),
+  //   },
+  // ]);
+
+  const dispatch = useDispatch();
+
+  const { bookings, loading, error } = useSelector((state) => state.booking);
+
+  useEffect(() => {
+    dispatch(getBookingsAction({}));
+  }, [dispatch]);
 
   const [activeBookingData, setActiveBookingData] = useState({});
   const [isBookingFormVisible, setBookingFormVisible] = useState(false);
@@ -106,13 +117,13 @@ const BookingsPage = () => {
   // }, []);
 
   const handleCreateBooking = (bookingData) => {
-    setBookings([...bookings, { _id: bookings.length + 1, ...bookingData }]);
+    // setBookings([...bookings, { _id: bookings.length + 1, ...bookingData }]);
     setBookingFormVisible(false);
   };
 
   const handleDeleteBooking = (bookingId) => {
     // delete the booking with the given id
-    setBookings(bookings.filter((booking) => booking._id !== bookingId));
+    // setBookings(bookings.filter((booking) => booking._id !== bookingId));
   };
 
   const handleEditBooking = (bookingId) => {
@@ -130,6 +141,28 @@ const BookingsPage = () => {
       setDateFilter({ ...dateFilter, endDate: date.endDate });
     }
   };
+
+  if (loading) {
+    return (
+      <Card className="w-full h-full flex justify-center items-center p-4 mt-4">
+        <Loader size={"2xl"} />
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="w-full flex justify-center items-center p-4 mt-4">
+        <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">
+          Error fetching bookings
+        </h1>
+        <Button className="" onClick={() => location.reload()}>
+          {" "}
+          Refresh page
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -187,7 +220,7 @@ const BookingsPage = () => {
         </div>
       </Card>
 
-      {/* Display Bookings */} 
+      {/* Display Bookings */}
       {bookings.length === 0 ? (
         <Card className="w-full flex justify-center items-center p-4 mt-4">
           <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">

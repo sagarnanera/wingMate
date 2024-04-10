@@ -9,34 +9,26 @@ const BookingDetailsPage = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
 
-  const [bookingData, setBookingData] = useState({
-    _id: "1",
-    name: "booking A",
-    description: "some description",
-    feesPerPerson: 1000,
-    propertyIds: ["1", "2"],
-    startDate: new Date("2021-10-01"),
-    endDate: new Date("2021-10-10"),
-    status: "Pending", // Add the approval status property
-  });
+  // const [bookingData, setBookingData] = useState({
+  //   _id: "1",
+  //   name: "booking A",
+  //   description: "some description",
+  //   feesPerPerson: 1000,
+  //   propertyIds: ["1", "2"],
+  //   startDate: new Date("2021-10-01"),
+  //   endDate: new Date("2021-10-10"),
+  //   status: "Pending", // Add the approval status property
+  // });
+
+  // const {booking} = user
 
   // TODO: fetch booking data from backend using bookingId
 
-  // useEffect(() => {
-  //   const fetchBookingData = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         `http://localhost:5000/bookings/${bookingId}`
-  //       );
-  //       const data = await response.json();
-  //       setBookingData(data);
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   };
+  useEffect(() => {
+    
+    
 
-  //   fetchBookingData();
-  // }, [bookingId]);
+  }, [bookingId]);
 
   const handleEditBooking = (bookingId) => {
     console.log("edit booking with id: ", bookingId);

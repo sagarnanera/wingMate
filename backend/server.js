@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 8080;
 connectDB()
   .then((db) => {
     app.context.db = db;
-    app.listen(PORT, (err) => {
+    app.listen(PORT, "rest.wingmate.local", (err) => {
       if (err) {
         console.log("Error occurred while starting the server..." + err);
         return;

@@ -46,10 +46,22 @@ app.use(async (ctx, next) => {
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "http://app.wingmate.local",
     credentials: true,
   })
 );
+
+// heath check
+app.use(async (ctx, next) => {
+  if (ctx.path === "/") {
+    ctx.body = {
+      status: 200,
+      message: "wingMate API server is up and running!",
+    };
+  } else {
+    await next();
+  }
+});
 
 // middlewares
 app.use(invalidJsonHandler);
