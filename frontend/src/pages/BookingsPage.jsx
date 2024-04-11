@@ -74,48 +74,6 @@ const BookingsPage = () => {
   // TODO: implement debounce for the search filter
   const [searchFilter, setSearchFilter] = useState("");
 
-  // const fetchBookings = useCallback(async () => {
-  //   try {
-  //     let url = "/api/bookings";
-  //     if (searchFilter || dateFilter.startDate || dateFilter.endDate) {
-  //       url += "?";
-  //       if (searchFilter) {
-  //         url += `searchFilter=${encodeURIComponent(searchFilter)}&`;
-  //       }
-  //       if (dateFilter.startDate) {
-  //         url += `startDate=${encodeURIComponent(dateFilter.startDate)}&`;
-  //       }
-  //       if (dateFilter.endDate) {
-  //         url += `endDate=${encodeURIComponent(dateFilter.endDate)}&`;
-  //       }
-  //     }
-  //     const response = await fetch(url, {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       setBookings(data);
-  //     } else {
-  //       console.error("Failed to fetch bookings");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching bookings:", error);
-  //   }
-  // }, [searchFilter, dateFilter]);
-
-  // Fetch bookings from the backend
-  // useEffect(() => {
-  //   // TODO: fetch the booking based on the filters
-  //   fetchBookings();
-  // }, [searchFilter, dateFilter, fetchBookings]);
-
-  // useEffect(() => {
-  //     fetchBookings();
-  // }, []);
-
   const handleCreateBooking = (bookingData) => {
     // setBookings([...bookings, { _id: bookings.length + 1, ...bookingData }]);
     setBookingFormVisible(false);

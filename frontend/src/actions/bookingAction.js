@@ -41,7 +41,9 @@ export const getBookingAction = createAsyncThunk(
     try {
       const response = await getBooking(bookingId);
 
-      if (!response.success) {
+      console.log(bookingId, response);
+
+      if (!response.success || !response.booking) {
         return rejectWithValue(response.message);
       }
 

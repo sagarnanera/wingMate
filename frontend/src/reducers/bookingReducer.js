@@ -4,6 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   bookings: [],
+  activeBooking: null,
   loading: false,
   error: null,
 };
@@ -24,6 +25,9 @@ const bookingSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     },
+    bookingLoading(state) {
+      state.loading = true;
+    },
     toggleBookingStatus(state, action) {
       state.bookings = state.bookings.map((booking) =>
         booking._id === action.payload._id ? action.payload : booking
@@ -39,9 +43,10 @@ const bookingSlice = createSlice({
       state.loading = false;
     });
     builder.addCase("getBooking/fulfilled", (state, action) => {
-      state.bookings = action.payload;
+      state.activeBooking = action.payload;
       state.loading = false;
     });
+
     builder.addCase("getBookings/pending", (state) => {
       state.loading = true;
     });
@@ -53,6 +58,7 @@ const bookingSlice = createSlice({
       state.bookings = action.payload;
       state.loading = false;
     });
+
     builder.addCase("createBooking/pending", (state) => {
       state.loading = true;
     });
@@ -64,6 +70,7 @@ const bookingSlice = createSlice({
       state.bookings.push(action.payload);
       state.loading = false;
     });
+
     builder.addCase("updateBooking/pending", (state) => {
       state.loading = true;
     });
@@ -77,6 +84,7 @@ const bookingSlice = createSlice({
       );
       state.loading = false;
     });
+
     builder.addCase("deleteBooking/pending", (state) => {
       state.loading = true;
     });
@@ -90,6 +98,7 @@ const bookingSlice = createSlice({
       );
       state.loading = false;
     });
+
     builder.addCase("changeBookingStatus/pending", (state) => {
       state.loading = true;
     });

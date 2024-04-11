@@ -1,76 +1,136 @@
 // event form, which will be used to create or edit an event
+/* eslint-disable no-unused-vars */
+
+// event form, which will take name, description, fees per person, property ids, start date, end date with a submit button.
 
 import React, { useState } from "react";
-import { Button, Card, FloatingLabel } from "flowbite-react";
+import PropTypes from "prop-types";
+import { Button, FloatingLabel, Modal, Textarea } from "flowbite-react";
 
-const EventForm = ({ event, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    feesPerPerson: "",
-    propertyIds: "",
-    startDate: "",
-    endDate: "",
-  });
+import DateRangePicker from "../shared/DateRangePicker";
+import Select from "react-select";
+
+const EventForm = ({ initialData, visible, source, handleClose, onSubmit }) => {
+  const [eventData, setEventData] = useState(initialData);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setEventData({ ...eventData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
+  const handleSubmit = () => {
+    console.log(eventData);
+    onSubmit(eventData);
+  };
+
+  const handleDateRangeChange = (date) => {
+    if (date.from === "startDate") {
+      setEventData({
+        ...eventData,
+        startDate: date.startDate,
+      });
+    } else {
+      setEventData({
+        ...eventData,
+        endDate: date.endDate,
+      });
+    }
+  };
+
+  const closeModal = () => {
+    setEventData({});
+    handleClose();
   };
 
   return (
-    <Card className="w-full">
-      <form onSubmit={handleSubmit}>
-        <FloatingLabel
-          variant="outlined"
-          label="Name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-        />
-        <FloatingLabel
-          variant="outlined"
-          label="Description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-        />
-        <FloatingLabel
-          variant="outlined"
-          label="Fees Per Person"
-          name="feesPerPerson"
-          value={formData.feesPerPerson}
-          onChange={handleChange}
-        />
-        <FloatingLabel
-          variant="outlined"
-          label="Property Ids"
-          name="propertyIds"
-          value={formData.propertyIds}
-          onChange={handleChange}
-        />
-        <FloatingLabel
-          variant="outlined"
-          label="Start Date"
-          name="startDate"
-          value={formData.startDate}
-          onChange={handleChange}
-        />
-        <FloatingLabel
-          variant="outlined"
-          label="End Date"
-          name="endDate"
-          value={formData.endDate}
-          onChange={handleChange}
-        />
-        <Button type="submit">Submit</Button>
-      </form>
-    </Card>
+    <Modal show={visible} onClose={closeModal}>
+      <Modal.Header>
+        {source === "edit" ? "Edit event details" : "Create event"}
+      </Modal.Header>
+      <Modal.Body>
+        <div className="">
+          <div className="my-4">
+            <FloatingLabel
+              variant="outlined"
+              label="event name"
+              type="text"
+              name="name"
+              value={eventData?.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="my-4">
+            <Textarea
+              variant="outlined"
+              label="Description"
+              type="text"
+              name="description"
+              placeholder="event description ?"
+              value={eventData?.description}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="my-4">
+            <FloatingLabel
+              variant="outlined"
+              label="Fees per person"
+              type="number"
+              name="feesPerPerson"
+              value={eventData?.feesPerPerson}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="flex justify-center items-center gap-2">
+            <DateRangePicker
+              dateRange={{
+                startDate: eventData.startDate || "",
+                endDate: eventData.endDate || "",
+              }}
+              handleDateChange={handleDateRangeChange}
+            />
+          </div>
+
+          {/* properties should be multi select dropdown, only editable if we are creating event, not on editing */}
+          <div className="my-4">
+            <Select
+              options={eventData?.propertyIds}
+              isMulti
+              onChange={(selectedList) => {
+                setEventData({ ...eventData, propertyIds: selectedList });
+              }}
+            />
+          </div>
+        </div>
+      </Modal.Body>
+      <Modal.Footer>
+        <div className="w-full flex justify-evenly items-center">
+          <Button
+            type="submit"
+            color="red"
+            className="w-1/2 mx-1"
+            onClick={closeModal}
+          >
+            cancel
+          </Button>
+          <Button type="submit" className="w-1/2 mx-1" onClick={handleSubmit}>
+            Submit
+          </Button>
+        </div>
+      </Modal.Footer>
+    </Modal>
   );
+};
+
+EventForm.propTypes = {
+  initialData: PropTypes.object,
+  visible: PropTypes.bool,
+  source: PropTypes.string,
+  handleClose: PropTypes.func,
+  onSubmit: PropTypes.func,
 };
 
 export default EventForm;

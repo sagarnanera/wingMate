@@ -43,6 +43,19 @@ const residentSlice = createSlice({
       state.residents = action.payload;
       state.loading = false;
     });
+
+    builder.addCase("createResident/pending", (state) => {
+      state.loading = true;
+    });
+    builder.addCase("createResident/rejected", (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    });
+    builder.addCase("createResident/fulfilled", (state, action) => {
+      state.residents.push(action.payload);
+      state.loading = false;
+    });
+
     builder.addCase("deleteResident/pending", (state) => {
       state.loading = true;
     });

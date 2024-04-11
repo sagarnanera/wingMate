@@ -111,19 +111,26 @@ const NavigationBar = () => {
               title={society?.name}
               img="https://www.alt-er.com/wp-content/uploads/2021/11/gokuldham-logo.png"
               imgAlt="society logo"
-              className="max-w-full h-28 text-nowrap overflow-hidden text-ellipsis"
+              className="max-w-full h-12 text-nowrap overflow-hidden text-ellipsis"
               theme={{
-                inner: "h-28",
-                img: "h-28",
+                inner: "h-12",
+                img: "h-12",
               }}
-            />
+            >
+            <div
+                title={society?.name}
+                className="max-w-[60%] text-nowrap text-ellipsis overflow-hidden"
+              >
+                {society?.name}
+              </div>
+            </Sidebar.Logo>
           ) : (
             <Card
-              className="h-28 mb-4 !p-0 text-xl font-semibold text-gray-900 dark:text-white"
+              className="h-12 mb-4 !p-0 text-xl font-semibold text-gray-900 dark:text-white"
               theme={{
                 root: {
-                  inner: "h-28",
-                  children: "h-28 p-2 flex justify-center items-center",
+                  inner: "h-12",
+                  children: "h-12 p-2 flex justify-center items-center",
                 },
               }}
             >
@@ -200,6 +207,9 @@ const NavigationBar = () => {
           <Avatar
             alt="User settings"
             img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+            // onError={
+            //   this.src = "https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+            // }
             rounded
           />
           {/* <NavLink to={"/logout"}>

@@ -4,6 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   posts: [],
+  activePost: null,
   loading: false,
   error: null,
 };
@@ -12,11 +13,11 @@ const postSlice = createSlice({
   name: "post",
   initialState,
   reducers: {
-    getPost(state, action) {
+    setPost(state, action) {
       state.posts = action.payload;
       state.loading = false;
     },
-    getPosts(state, action) {
+    setPosts(state, action) {
       state.posts = action.payload;
       state.loading = false;
     },
@@ -24,21 +25,9 @@ const postSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     },
-    toggleLikePost(state, action) {
-      state.posts = state.posts.map((post) =>
-        post._id === action.payload._id ? action.payload : post
-      );
+    postLoading(state) {
+      state.loading = true;
     },
-    // addComment(state, action) {
-    //   state.posts = state.posts.map((post) =>
-    //     post._id === action.payload._id ? action.payload : post
-    //   );
-    // },
-    // deleteComment(state, action) {
-    //   state.posts = state.posts.map((post) =>
-    //     post._id === action.payload._id ? action.payload : post
-    //   );
-    // },
   },
   extraReducers: (builder) => {
     builder.addCase("getPost/pending", (state) => {
@@ -49,9 +38,11 @@ const postSlice = createSlice({
       state.loading = false;
     });
     builder.addCase("getPost/fulfilled", (state, action) => {
-      state.posts = action.payload;
+      // state.posts = action.payload;
+      state.activePost = action.payload;
       state.loading = false;
     });
+
     builder.addCase("getPosts/pending", (state) => {
       state.loading = true;
     });
@@ -63,19 +54,58 @@ const postSlice = createSlice({
       state.posts = action.payload;
       state.loading = false;
     });
-    builder.addCase("toggleLikePost/pending", (state) => {
+
+    builder.addCase("updatePost/pending", (state) => {
       state.loading = true;
     });
-    builder.addCase("toggleLikePost/rejected", (state, action) => {
+    builder.addCase("updatePost/rejected", (state, action) => {
       state.error = action.payload;
       state.loading = false;
     });
-    builder.addCase("toggleLikePost/fulfilled", (state, action) => {
+    builder.addCase("updatePost/fulfilled", (state, action) => {
       state.posts = state.posts.map((post) =>
         post._id === action.payload._id ? action.payload : post
       );
       state.loading = false;
     });
+
+    builder.addCase("createPost/pending", (state) => {
+      state.loading = true;
+    });
+    builder.addCase("createPost/rejected", (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    });
+    builder.addCase("createPost/fulfilled", (state, action) => {
+      state.posts.push(action.payload);
+      state.loading = false;
+    });
+
+    builder.addCase("deletePost/pending", (state) => {
+      state.loading = true;
+    });
+    builder.addCase("deletePost/rejected", (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    });
+    builder.addCase("deletePost/fulfilled", (state, action) => {
+      state.posts = state.posts.filter((post) => post._id !== action.payload);
+      state.loading = false;
+    });
+
+    // builder.addCase("toggleLikePost/pending", (state) => {
+    //   state.loading = true;
+    // });
+    // builder.addCase("toggleLikePost/rejected", (state, action) => {
+    //   state.error = action.payload;
+    //   state.loading = false;
+    // });
+    // builder.addCase("toggleLikePost/fulfilled", (state, action) => {
+    //   state.posts = state.posts.map((post) =>
+    //     post._id === action.payload._id ? action.payload : post
+    //   );
+    //   state.loading = false;
+    // });
     // builder.addCase("addComment/pending", (state) => {
     //   state.loading = true;
     // });

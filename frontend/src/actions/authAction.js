@@ -41,6 +41,10 @@ export const registerAction = createAsyncThunk(
       const response = await register(data);
 
       if (!response.success || !response.user) {
+        showToast(
+          `${response.message} \n ${response.err.map((e) => "\n" + e.message)}`,
+          "error"
+        );
         return rejectWithValue(response.message);
       }
 
@@ -68,6 +72,8 @@ export const societyRegisterAction = createAsyncThunk(
         );
         return rejectWithValue(response.message);
       }
+
+      console.log("s", response);
 
       showToast("Society Registration Successful!", "success");
 

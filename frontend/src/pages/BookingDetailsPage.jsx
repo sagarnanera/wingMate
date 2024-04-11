@@ -4,10 +4,15 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Card } from "flowbite-react";
 import { MdDeleteOutline, MdEditCalendar } from "react-icons/md";
+import { useDispatch, useSelector } from "react-redux";
+import { getBookingAction } from "../actions/bookingAction";
+import Loader from "../components/shared/Loader";
 
 const BookingDetailsPage = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
+
+  const dispatch = useDispatch();
 
   // const [bookingData, setBookingData] = useState({
   //   _id: "1",
@@ -25,10 +30,15 @@ const BookingDetailsPage = () => {
   // TODO: fetch booking data from backend using bookingId
 
   useEffect(() => {
-    
-    
+    console.log("fetching booking with id: ", bookingId);
+    dispatch(getBookingAction(bookingId));
+  }, [dispatch, bookingId]);
 
-  }, [bookingId]);
+  const {
+    activeBookingData: bookingData,
+    loading,
+    error,
+  } = useSelector((state) => state.booking);
 
   const handleEditBooking = (bookingId) => {
     console.log("edit booking with id: ", bookingId);
@@ -54,21 +64,29 @@ const BookingDetailsPage = () => {
     navigate("/bookings");
   };
 
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <div className="flex justify-center items-center h-full">
       <Card className="w-full md:w-1/2 p-8">
         <h1 className="text-3xl font-semibold text-gray-800 my-4 justify-center text-center">
-          {bookingData.name}
+          {bookingData?.name}
         </h1>
         <div>
           <p className="text-gray-600 mb-2">
-            Description: {bookingData.description}
+            Description: {bookingData?.description}
           </p>
           <p className="text-gray-600 mb-2">
-            Fees per person: {bookingData.feesPerPerson}
+            Fees per person: {bookingData?.feesPerPerson}
           </p>
           <p className="text-gray-600 mb-2">
-            Property Ids: {bookingData.propertyIds.join(", ")}
+            Property Ids: {bookingData?.propertyIds.join(", ")}
           </p>
           <p className="text-gray-600 mb-2">
             Start Date: {bookingData?.startDate?.toDateString()}
@@ -76,7 +94,7 @@ const BookingDetailsPage = () => {
           <p className="text-gray-600 mb-2">
             End Date: {bookingData?.endDate?.toDateString()}
           </p>
-          <p className="text-gray-600 mb-2">Status: {bookingData.status}</p>
+          <p className="text-gray-600 mb-2">Status: {bookingData?.status}</p>
         </div>
         <div className="flex gap-2 justify-between items-center mt-4">
           <Button

@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { Button, FloatingLabel, Modal } from "flowbite-react";
 import PropTypes from "prop-types";
 
-const WingForm = ({ initialData, handleClose, visible, source }) => {
+const WingForm = ({ initialData, handleClose, visible, source, onSubmit }) => {
   const [wingData, setWingData] = useState(initialData);
 
   const handleChange = (e) => {
@@ -13,9 +13,12 @@ const WingForm = ({ initialData, handleClose, visible, source }) => {
     setWingData({ ...wingData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = () => {
+    // validation
+
     console.log(wingData);
+
+    onSubmit(wingData);
   };
 
   const closeModal = () => {
@@ -33,7 +36,7 @@ const WingForm = ({ initialData, handleClose, visible, source }) => {
           <div className="my-4">
             <FloatingLabel
               variant="outlined"
-              label="Name"
+              label="Wing Name"
               type="text"
               name="name"
               onChange={handleChange}
@@ -44,10 +47,9 @@ const WingForm = ({ initialData, handleClose, visible, source }) => {
           <div className="my-4">
             <FloatingLabel
               variant="outlined"
-              label="Area"
+              label="Wing Area"
               type="text"
               name="area"
-              placeholder="event description ?"
               value={wingData.name}
               onChange={handleChange}
               required
@@ -56,7 +58,7 @@ const WingForm = ({ initialData, handleClose, visible, source }) => {
           <div className="my-4">
             <FloatingLabel
               variant="outlined"
-              label="Location"
+              label="Wing Location"
               type="text"
               name="location"
               value={wingData.location}

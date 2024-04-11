@@ -1,14 +1,28 @@
 // property page, which will display all the properties in the society, with add and delete functionality.
 
+/*
+  {
+    "name":"property A",
+    description:"some description",
+    "area":8000,
+    "location":"somewhere outside society"
+    rentPerDay: 1000
+  }
+*/
+
 import React, { useState, useEffect } from "react";
 import { Button, Card, Label, TextInput } from "flowbite-react";
 import { MdAssignmentAdd, MdOutlineKeyboardBackspace } from "react-icons/md";
 
 import PropertyCard from "../components/property/PropertyCard";
 import { useNavigate } from "react-router-dom";
-import { getPropertiesAction } from "../actions/propertyAction";
+import {
+  createPropertyAction,
+  getPropertiesAction,
+} from "../actions/propertyAction";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../components/shared/Loader";
+import PropertyForm from "../components/property/PropertyForm";
 
 const PropertyPage = () => {
   const navigate = useNavigate();
@@ -52,29 +66,17 @@ const PropertyPage = () => {
 
   const { properties, loading, error } = useSelector((state) => state.property);
 
+  const [activePropertyData, setActivePropertyData] = useState({});
   const [isPropertyFormVisible, setPropertyFormVisible] = useState(false);
 
   // TODO: implement debounce for the search filter
   const [searchFilter, setSearchFilter] = useState("");
 
-  // {
-  //     "name":"property A",
-  //     "area":8000,
-  //     "location":"somewhere outside society"
-  //   }
+  const handleCreateProperty = (data) => {
+    console.log(data);
 
-  // TODO : Fetch properties from the backend
-
-  // useEffect(() => {
-  //     const fetchProperties = async () => {
-  //         const response = await fetch("/api/properties");
-  //         const data = await response.json();
-  //         setProperties(data);
-  //     };
-
-  //     fetchProperties();
-
-  // }, []);
+    dispatch(createPropertyAction(data));
+  };
 
   const handlePropertyDelete = () => {};
 
@@ -173,6 +175,15 @@ const PropertyPage = () => {
             />
           ))}
         </div>
+      )}
+
+      {isPropertyFormVisible && (
+        <PropertyForm
+          initialData={activePropertyData}
+          visible={isPropertyFormVisible}
+          handleClose={() => setPropertyFormVisible(false)}
+          onSubmit={(data) => handleCreateProperty(data)}
+        />
       )}
     </>
   );

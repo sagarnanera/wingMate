@@ -15,13 +15,10 @@ const societySlice = createSlice({
     setSociety: (state, action) => {
       state.society = action.payload;
     },
-    setSocieties: (state, action) => {
-      state.societies = action.payload;
-    },
-    setLoading: (state, action) => {
+    societyLoading: (state, action) => {
       state.loading = action.payload;
     },
-    setError: (state, action) => {
+    societyError: (state, action) => {
       state.error = action.payload;
     },
   },
@@ -37,6 +34,7 @@ const societySlice = createSlice({
       state.society = action.payload;
       state.loading = false;
     });
+    
     builder.addCase("updateSociety/pending", (state) => {
       state.loading = true;
     });
@@ -48,6 +46,7 @@ const societySlice = createSlice({
       state.society = action.payload;
       state.loading = false;
     });
+
     builder.addCase("deleteSociety/pending", (state) => {
       state.loading = true;
     });
@@ -62,7 +61,7 @@ const societySlice = createSlice({
   },
 });
 
-export const { setSociety, setSocieties, setLoading, setError } =
+export const { setSociety, societyError, societyLoading } =
   societySlice.actions;
 
 export default societySlice.reducer;

@@ -3,7 +3,8 @@ import { Button, Card, Checkbox, FloatingLabel } from "flowbite-react";
 import { Link } from "react-router-dom";
 import { societyRegisterAction } from "../../actions/authAction";
 import { showToast } from "../../utils/showToast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import Loader from "../shared/Loader";
 
 const SocietyRegisterCard = () => {
   const dispatch = useDispatch();
@@ -29,6 +30,8 @@ const SocietyRegisterCard = () => {
     password: "",
     contact: "",
   });
+
+  const { loading, error } = useSelector((state) => state.auth);
 
   const handleChange = (e) => {
     setSocietyData({
@@ -182,8 +185,9 @@ const SocietyRegisterCard = () => {
         className="w-full rounded-lg text-sm px-5 py-2.5 text-center"
         variant="primary"
         onClick={handleSubmit}
+        disabled={loading}
       >
-        Register
+        {loading ? <Loader variant={"tiny"} size={"lg"} /> : "Register"}
       </Button>
       <p className="text-sm font-light text-gray-500 dark:text-gray-400">
         Already have an account?{" "}

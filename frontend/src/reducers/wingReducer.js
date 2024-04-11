@@ -42,7 +42,7 @@ const wingSlice = createSlice({
       state.wings = action.payload;
       state.loading = false;
     });
-    
+
     builder.addCase("getWing/pending", (state) => {
       state.loading = true;
     });
@@ -63,7 +63,8 @@ const wingSlice = createSlice({
       state.loading = false;
     });
     builder.addCase("createWing/fulfilled", (state, action) => {
-      state.wings = action.payload;
+      // state.wings = action.payload;
+      state.wings.push(action.payload);
       state.loading = false;
     });
 
@@ -75,7 +76,10 @@ const wingSlice = createSlice({
       state.loading = false;
     });
     builder.addCase("updateWing/fulfilled", (state, action) => {
-      state.wings = action.payload;
+      // state.wings = action.payload;
+      state.wings = state.wings.map((wing) =>
+        wing._id === action.payload._id ? action.payload : wing
+      );
       state.loading = false;
     });
 
@@ -87,7 +91,8 @@ const wingSlice = createSlice({
       state.loading = false;
     });
     builder.addCase("deleteWing/fulfilled", (state, action) => {
-      state.wings = action.payload;
+      // state.wings = action.payload;
+      state.wings = state.wings.filter((wing) => wing._id !== action.payload);
       state.loading = false;
     });
   },

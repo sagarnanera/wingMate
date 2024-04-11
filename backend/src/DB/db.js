@@ -1,6 +1,9 @@
 const { MongoClient } = require("mongodb");
 
-const mongo_uri = process.env.MONGO_URI;
+const node_env = process.env.NODE_ENV;
+
+const mongo_uri =
+  node_env === "PROD" ? process.env.MONGO_URI_ATLAS : process.env.MONGO_URI;
 const dbName = "wingMate_db";
 
 const client = new MongoClient(mongo_uri);
@@ -31,5 +34,5 @@ const connectDB = async () => {
 };
 
 module.exports = {
-  connectDB
+  connectDB,
 };

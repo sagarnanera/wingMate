@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Button, Card, Checkbox, FloatingLabel, Spinner } from "flowbite-react";
-import { Link, Navigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Button, Card, Checkbox, FloatingLabel } from "flowbite-react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginAction } from "../../actions/authAction";
 import Loader from "../shared/Loader";
-import { useToast } from "../../context/toast-context";
-import toast from "react-hot-toast";
 import { showToast } from "../../utils/showToast";
 
 const LoginCard = () => {
@@ -99,7 +97,7 @@ const LoginCard = () => {
           onClick={handleSubmit}
           disabled={loading}
         >
-          {loading ? <Loader variant={"tiny"} size={"xl"} /> : "Sign in"}
+          {loading ? <Loader variant={"tiny"} size={"lg"} /> : "Sign in"}
         </Button>
         <p className="text-sm font-light text-gray-500 dark:text-gray-400">
           Don&apos;t have an account yet?{" "}

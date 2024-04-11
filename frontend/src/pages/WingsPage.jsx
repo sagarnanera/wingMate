@@ -44,6 +44,7 @@ const WingsPage = () => {
   const dispatch = useDispatch();
 
   const [isWingFormVisible, setWingFormVisible] = useState(false);
+  const [activeWingData, setActiveWingData] = useState({});
 
   // TODO: implement debounce for the search filter
   const [searchFilter, setSearchFilter] = useState("");
@@ -54,8 +55,6 @@ const WingsPage = () => {
   //     "location":"somewhere outside society"
   //   }
 
-  // TODO : Fetch wings from the backend
-
   useEffect(() => {
     dispatch(getWingsAction({}));
   }, [dispatch]);
@@ -64,9 +63,10 @@ const WingsPage = () => {
 
   const handleWingDelete = (wingId) => {};
 
-  const handleChange = (wingId) => {};
-
-  const handleSubmit = (wingId) => {};
+  const handleCreateWing = (wingData) => {
+    console.log(wingData);
+    setWingFormVisible(false);
+  };
 
   if (loading) {
     return (
@@ -165,13 +165,19 @@ const WingsPage = () => {
         </div>
       )}
 
-      <WingForm
-        closeModal={() => setWingFormVisible(false)}
-        source="add"
-        initialData={{}}
-        handleChange={handleChange}
-        handleSubmit={handleSubmit}
-      />
+      {isWingFormVisible && (
+        <WingForm
+          // closeModal={() => setWingFormVisible(false)}
+          // source="add"
+          // initialData={{}}
+          // handleChange={handleChange}
+          // handleSubmit={handleSubmit}
+          initialData={activeWingData}
+          visible={isWingFormVisible}
+          handleClose={() => setWingFormVisible(false)}
+          onSubmit={(data) => handleCreateWing(data)}
+        />
+      )}
     </>
   );
 };

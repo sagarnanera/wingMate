@@ -61,6 +61,7 @@ const EventsPage = () => {
 
   const { events, loading, error } = useSelector((state) => state.event);
 
+  const [activeEventData, setActiveEventData] = useState({});
   const [isEventFormVisible, setEventFormVisible] = useState(false);
 
   const [dateFilter, setDateFilter] = useState({
@@ -92,7 +93,6 @@ const EventsPage = () => {
   // }, []);
 
   const handleCreateEvent = (eventData) => {
-    // setEvents([...events, eventData]);
     setEventFormVisible(false);
   };
 
@@ -120,7 +120,7 @@ const EventsPage = () => {
     return (
       <Card className="w-full flex justify-center items-center p-4 mt-4">
         <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">
-          Error fetching bookings
+          Error fetching events
         </h1>
         <Button className="" onClick={() => location.reload()}>
           {" "}
@@ -207,8 +207,10 @@ const EventsPage = () => {
 
       {isEventFormVisible && (
         <EventForm
-          onCreate={handleCreateEvent}
-          onCancel={() => setEventFormVisible(false)}
+          initialData={activeEventData}
+          visible={isEventFormVisible}
+          handleClose={() => setEventFormVisible(false)}
+          onSubmit={(data) => handleCreateEvent(data)}
         />
       )}
     </>
