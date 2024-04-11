@@ -8,6 +8,8 @@ const {
 } = require("./handlers/error.handler");
 const tryCatchHandler = require("./handlers/globalTryCatch.handler");
 
+const node_env = process.env.NODE_ENV || "DEV";
+
 // koa app
 const app = new koa();
 
@@ -46,7 +48,10 @@ app.use(async (ctx, next) => {
 
 app.use(
   cors({
-    origin: "http://app.wingmate.local",
+    origin:
+      node_env === "PROD"
+        ? process.env.FRONTEND_URL
+        : "http://app.wingmate.local",
     credentials: true,
   })
 );
