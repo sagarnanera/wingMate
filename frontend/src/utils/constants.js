@@ -3,7 +3,7 @@
 const env = import.meta.env;
 
 export const API_URL =
-  env.VITE_ENVIRONMENT === "production"
+  env.VITE_ENVIRONMENT === "PROD"
     ? env.VITE_PROD_API_URL
     : env.VITE_DEV_API_URL;
 
