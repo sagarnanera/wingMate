@@ -14,7 +14,7 @@ exports.loginController = async (ctx) => {
   // const user = await User.findOne({ email: email });
   const { society, ...user } = await findUserWithPass(ctx.db, { email: email });
 
-  if (!user) {
+  if (!user || Object.keys(user).length === 0) {
     // ctx.status = 404;
     // ctx.body = { success: false, message: "User not found." };
 

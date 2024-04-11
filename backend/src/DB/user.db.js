@@ -50,9 +50,7 @@ exports.findUserWithPass = async (db, searchQuery) => {
     },
   ]).toArray();
 
-  console.dir(user, { depth: null });
-
-  return user[0];
+  return user[0] || {};
 };
 
 exports.findUsers = async (db, searchQuery, skip, limit, sort) => {
