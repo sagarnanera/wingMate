@@ -10,6 +10,7 @@ import {
   getBookingAction,
 } from "../actions/bookingAction";
 import Loader from "../components/shared/Loader";
+import { formateDate } from "../utils/formateDate";
 
 const BookingDetailsPage = () => {
   const { bookingId } = useParams();
@@ -17,20 +18,18 @@ const BookingDetailsPage = () => {
 
   const dispatch = useDispatch();
 
-  const {
-    activeBookingData: bookingData,
-    loading,
-    error,
-  } = useSelector((state) => state.booking);
+  const { activeBooking, loading, error } = useSelector(
+    (state) => state.booking
+  );
 
   useEffect(() => {
     console.log("fetching booking with id: ", bookingId);
     dispatch(getBookingAction(bookingId));
-    console.log("fetching booking with id: ", bookingId, bookingData);
-  }, [dispatch, bookingId, bookingData]);
+    console.log("fetching booking with id: ", bookingId, activeBooking);
+  }, [dispatch, bookingId]);
 
   const handleEditBooking = (bookingId) => {
-    console.log("edit booking with id: ", bookingId);
+    console.log("edit booking with id: ", activeBooking);
 
     // open the modal with the form to edit the booking
   };
@@ -67,35 +66,40 @@ const BookingDetailsPage = () => {
     <div className="flex justify-center items-center h-full">
       <Card className="w-full md:w-1/2 p-8">
         <h1 className="text-3xl font-semibold text-gray-800 my-4 justify-center text-center">
-          {bookingData?.reason}
+          {activeBooking?.reason === "Event"
+            ? "Event Booking"
+            : activeBooking?.reason}
         </h1>
         <div>
           <p className="text-gray-600 mb-2">
-            Description: {bookingData?.description}
+            Booking type: {activeBooking?.bookingType}
           </p>
           <p className="text-gray-600 mb-2">
-            Fees per person: {bookingData?.feesPerPerson}
+            Total rent: {activeBooking?.totalRent}
+          </p>
+          {/* booked property names */}
+          <p className="text-gray-600 mb-2">
+            Property(s):{" "}
+            {activeBooking?.properties
+              ?.map((property) => property.name)
+              .join(", ")}
           </p>
           <p className="text-gray-600 mb-2">
-            Property Ids: {bookingData?.propertyIds.join(", ")}
+            Start Date: {formateDate(activeBooking?.startDate)}
           </p>
           <p className="text-gray-600 mb-2">
-            Start Date: {bookingData?.startDate?.toDateString()}
+            End Date: {formateDate(activeBooking?.endDate)}
           </p>
-          <p className="text-gray-600 mb-2">
-            End Date: {bookingData?.endDate?.toDateString()}
-          </p>
-          <p className="text-gray-600 mb-2">Status: {bookingData?.status}</p>
         </div>
         <div className="flex gap-2 justify-between items-center mt-4">
           <Button
             color="red"
-            onClick={() => handleDeleteBooking(bookingData?._id)}
+            onClick={() => handleDeleteBooking(activeBooking?._id)}
           >
             <MdDeleteOutline className="mr-2 h-4 w-4" />
             Delete
           </Button>
-          <Button onClick={() => handleEditBooking(bookingData?._id)}>
+          <Button onClick={() => handleEditBooking(activeBooking?._id)}>
             <MdEditCalendar className="mr-2 h-4 w-4" />
             Edit
           </Button>

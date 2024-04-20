@@ -9,6 +9,7 @@ import propertyReducer from "./propertyReducer";
 import societyReducer from "./societyReducer";
 import wingReducer from "./wingReducer";
 import residentReducer from "./residentReducer";
+import engagementReducer from "./engagementReducer";
 
 const rootReducer = combineReducers({
   user: userReducer,
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
   society: societyReducer,
   wing: wingReducer,
   resident: residentReducer,
+  engagement: engagementReducer,
 });
 
 export default rootReducer;

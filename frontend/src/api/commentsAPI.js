@@ -3,7 +3,7 @@
 import { post, get, put, deleteReq } from "../utils/request";
 
 export const getComments = async (postId, params) => {
-  const response = await get(`/comments/${postId}`, { params });
+  const response = await get(`/comment/${postId}`, { params });
   return response.data;
 };
 
@@ -13,7 +13,9 @@ export const getComment = async (id) => {
 };
 
 export const createComment = async (data) => {
-  const response = await post(`/comments`, data);
+  const { postId, ...commentData } = data;
+
+  const response = await post(`/comment/${postId}`, commentData);
   return response.data;
 };
 

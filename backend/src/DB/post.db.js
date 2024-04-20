@@ -118,12 +118,31 @@ exports.findPosts = async (db, searchQuery, skip, limit, sort) => {
         // foreignField: "_id",
         pipeline: [
           { $match: { $expr: { $eq: ["$$userId", "$_id"] } } },
-          { $project: { _id: 0, name: 1, role: 1 } }
+          { $project: { _id: 0, name: 1, role: 1 } },
         ],
-        as: "user"
-      } // will return array
+        as: "user",
+      }, // will return array
     },
-    { $unwind: "$user" }
+    { $unwind: "$user" },
+    // to check whether the post is liked by the user
+    {
+      $lookup: {
+        from: "likes",
+        let: { postId: "$_id" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$$postId", "$postId"] } } },
+          { $project: { _id: 0, userId: 1 } },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        isLiked: {
+          $in: ["$user._id", "$likes.userId"],
+        },
+      },
+    },
   ]).toArray();
 
   return posts;

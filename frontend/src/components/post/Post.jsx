@@ -1,7 +1,7 @@
 // post component which will have the post details, post can be text, image (can have multiple image show carousel), video or gif and will have like, comment and share button
 
 import { useEffect, useState } from "react";
-import { Card } from "flowbite-react";
+import { Card, FooterDivider } from "flowbite-react";
 import { Link } from "react-router-dom";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
@@ -18,6 +18,8 @@ import {
 import { FaRegComment, FaComment } from "react-icons/fa";
 import { useToast } from "../../context/toast-context";
 import { formateDate } from "../../utils/formateDate";
+import PostCard from "./PostCard";
+import Engagement from "../engagement/Engagement";
 
 const Post = ({ postData, source }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -83,102 +85,9 @@ const Post = ({ postData, source }) => {
 
   return (
     <Card className={`w-full ${source === "profile" ? "" : "lg:w-1/2"} mt-4`}>
-      <div className="flex items-center">
-        <img
-          loading="lazy"
-          src="https://xsgames.co/randomusers/avatar.php?g=pixel"
-          alt="user"
-          className="w-10 h-10 rounded-full"
-        />
-        <div className="ml-4">
-          <Link className="block text-sm" to={`/residents/${123}`}>
-            {postData?.user?.name}
-          </Link>
-          <span className="block text-xs text-gray-500">
-            {formateDate(postData?.createdOn)}
-          </span>
-        </div>
-      </div>
-      <div>
-        <h2 className="text-lg font-bold mt-4">{postData.title}</h2>
-        {/* image post */}
-        {postData &&
-          postData.contentType &&
-          postData.contentType === "image" &&
-          (postData.media && postData.media.length > 1 ? (
-            <Carousel
-              showThumbs={false}
-              showStatus={false}
-              showArrows={true}
-              infiniteLoop={true}
-              autoPlay={true}
-            >
-              {postData.media.map((image, index) => (
-                <img
-                  loading="lazy"
-                  key={index}
-                  src={image}
-                  alt="post"
-                  className="w-full rounded-lg"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "fallback-image-url";
-                  }}
-                />
-              ))}
-            </Carousel>
-          ) : (
-            <div className="mt-4">
-              <img
-                loading="lazy"
-                src={postData.media[0]}
-                alt="post"
-                className="w-full rounded-lg"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "fallback-image-url";
-                }}
-              />
-            </div>
-          ))}
-        {/* gif post */}
-        {postData && postData.contentType && postData.contentType === "gif" && (
-          <div className="mt-4">
-            <img
-              loading="lazy"
-              src={postData.media[0]}
-              alt="post"
-              className="w-full rounded-lg"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "fallback-image-url";
-              }}
-            />
-          </div>
-        )}
-        {/* video post */}
-        {postData &&
-          postData.contentType &&
-          postData.contentType === "video" && (
-            <div className="mt-4">
-              <video
-                src={postData.media[0]}
-                controls
-                controlsList="nodownload"
-                className="w-full rounded-lg"
-              />
-            </div>
-          )}
-
-        {postData &&
-          postData.contentType &&
-          postData.contentType === "text" && (
-            <p className="text-sm mt-4">{postData.text}</p>
-          )}
-      </div>
-
+      <PostCard postData={postData} />
       {/* engagement section: like comment share save */}
-      <div>
+      {/* <div>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <button className="text-blue-500" onClick={handleLike}>
@@ -215,7 +124,13 @@ const Post = ({ postData, source }) => {
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
+      <FooterDivider
+        theme={{
+          base: "border-gray-200 my-2",
+        }}
+      />
+      <Engagement postData={postData} />
     </Card>
   );
 };

@@ -28,6 +28,31 @@ const postSlice = createSlice({
     postLoading(state) {
       state.loading = true;
     },
+    setLikeCount(state, action) {
+      state.posts = state.posts.map((post) => {
+        // return post._id === action.payload
+        //   ? { ...post, totalLikes: post.totalLikes + 1 }
+        //   : post;
+        if (post._id === action.payload) {
+          if (post.isLiked) {
+            // post.totalLikes = post.totalLikes - 1;
+            // post.isLiked = false;
+            Object.assign(post, {
+              totalLikes: post.totalLikes - 1,
+              isLiked: false,
+            });
+          } else {
+            // post.totalLikes = post.totalLikes + 1;
+            // post.isLiked = true;
+            Object.assign(post, {
+              totalLikes: post.totalLikes + 1,
+              isLiked: true,
+            });
+          }
+        }
+        return post;
+      });
+    },
   },
   extraReducers: (builder) => {
     builder.addCase("getPost/pending", (state) => {
@@ -135,5 +160,5 @@ const postSlice = createSlice({
   },
 });
 
-export const { getPost, getPosts, postError } = postSlice.actions;
+export const { getPost, getPosts, postError, setLikeCount } = postSlice.actions;
 export default postSlice.reducer;

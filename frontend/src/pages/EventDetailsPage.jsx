@@ -7,6 +7,7 @@ import { MdDeleteOutline, MdEditCalendar } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteEventAction, getEventAction } from "../actions/eventAction";
 import Loader from "../components/shared/Loader";
+import { formateDate } from "../utils/formateDate";
 
 const EventDetailsPage = () => {
   const { eventId } = useParams();
@@ -15,15 +16,10 @@ const EventDetailsPage = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log("fetching event with id: ", eventId);
     dispatch(getEventAction(eventId));
   }, [dispatch, eventId]);
 
-  const {
-    activeEventData: eventData,
-    loading,
-    error,
-  } = useSelector((state) => state.event);
+  const { activeEvent, loading, error } = useSelector((state) => state.event);
 
   const handleEditEvent = (eventId) => {
     console.log("edit event with id: ", eventId);
@@ -65,32 +61,42 @@ const EventDetailsPage = () => {
     <div className="flex justify-center items-center h-full">
       <Card className="w-full md:w-1/2 p-8">
         <h1 className="text-3xl font-semibold text-gray-800 my-4 justify-center text-center">
-          {eventData?.name}
+          {activeEvent?.name}
         </h1>
         <div>
           <p className="text-gray-600 mb-2">
-            Description: {eventData?.description}
+            Description: {activeEvent?.description}
           </p>
           <p className="text-gray-600 mb-2">
-            Fees per person: {eventData?.feesPerPerson}
+            Fees per person: {activeEvent?.feesPerPerson}
+          </p>
+          {/* booked property names */}
+          <p className="text-gray-600 mb-2">
+            Property(s):{" "}
+            {activeEvent?.properties
+              ?.map((property) => property.name)
+              .join(", ")}
           </p>
           <p className="text-gray-600 mb-2">
-            Property Ids: {eventData?.propertyIds.join(", ")}
+            Total rent: {activeEvent?.totalRent || "N/A"}
           </p>
           <p className="text-gray-600 mb-2">
-            Start Date: {eventData?.startDate?.toDateString()}
+            Start Date: {formateDate(activeEvent?.startDate)}
           </p>
           <p className="text-gray-600 mb-2">
-            End Date: {eventData?.endDate?.toDateString()}
+            End Date: {formateDate(activeEvent?.endDate)}
           </p>
-          <p className="text-gray-600 mb-2">Status: {eventData?.status}</p>
+          <p className="text-gray-600 mb-2">Status: {activeEvent?.status}</p>
         </div>
         <div className="flex gap-2 justify-between items-center mt-4">
-          <Button color="red" onClick={() => handleDeleteEvent(eventData?._id)}>
+          <Button
+            color="red"
+            onClick={() => handleDeleteEvent(activeEvent?._id)}
+          >
             <MdDeleteOutline className="mr-2 h-4 w-4" />
             Delete
           </Button>
-          <Button onClick={() => handleEditEvent(eventData?._id)}>
+          <Button onClick={() => handleEditEvent(activeEvent?._id)}>
             <MdEditCalendar className="mr-2 h-4 w-4" />
             Edit
           </Button>

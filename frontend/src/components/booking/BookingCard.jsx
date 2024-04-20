@@ -4,9 +4,16 @@
 //     "name": "some event 2",
 //     "description": "this is description of some event 2",
 //     "feesPerPerson": 400,
-//     "propertyIds": [
-//       // "0c13d0c2-b379-4366-ad93-2b54254f7df9"
-//       "c5d6f7ec-90e9-4894-99b0-658970e30a0e"
+//     "properties": [
+          //   {
+          //     "_id": "0c13d0c2-b379-4366-ad93-2b54254f7df9",
+          //     "name": "terrace of wing A",
+          //     "wingId": "4918bf3b-f89b-4a57-a78b-064e29123875",
+          //     "societyId": "8426a679-6a38-416a-a6d8-4e9ccadb8744",
+          //     "area": 12200,
+          //     "location": "somewhere in world",
+          //     "rentPerDay": 2000
+          // },
 //     ],
 //     "startDate": "2024-04-04T18:30:00.805Z",
 //     "endDate": "2024-04-10T18:30:00.805Z"
@@ -35,11 +42,16 @@ const BookingCard = ({
       <div>
         <p className="text-gray-600 mb-2">Description: {bookingData.reason}</p>
         <p className="text-gray-600 mb-2">
-          Fees per person: {bookingData.feesPerPerson}
+          Total rent: {bookingData.totalRent}
         </p>
         <p className="text-gray-600 mb-2">
-          Property Ids: {bookingData.propertyIds}
+          Property(s) booked: {bookingData?.propertyIds?.length}
         </p>
+        {/* booked property names
+        <p className="text-gray-600 mb-2">
+          Property(s):{" "}
+          {bookingData?.properties?.map((property) => property.name).join(", ")}
+        </p> */}
         <p className="text-gray-600 mb-2">
           Start Date: {formateDate(bookingData?.startDate)}
         </p>

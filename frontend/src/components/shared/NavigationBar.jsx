@@ -92,6 +92,14 @@ const NavigationBar = () => {
   //   "Gokuldham society fsadfdsafasdffdasnldsflkamdsfkasndflkmasflkm";
   // const societyLogo = 0;
 
+  if (user?.role === "secretory") {
+    sidebarItems.push({
+      title: "Requests",
+      icon: HiViewBoards,
+      href: "/requests",
+    });
+  }
+
   return (
     <>
       <Sidebar
@@ -118,7 +126,7 @@ const NavigationBar = () => {
                 img: "h-12",
               }}
             >
-            <div
+              <div
                 title={society?.name}
                 className="max-w-[60%] text-nowrap text-ellipsis overflow-hidden"
               >

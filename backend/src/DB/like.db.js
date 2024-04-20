@@ -43,12 +43,12 @@ exports.findLikes = async (db, searchQuery, skip, limit, sort) => {
 //   return like;
 // };
 
-// exports.deleteLikeData = async (db, searchQuery) => {
-//   const LikeCollection = db.collection("likes");
+exports.deleteLikeData = async (db, searchQuery) => {
+  const LikeCollection = db.collection("likes");
 
-//   const like = await LikeCollection.findOneAndDelete(searchQuery);
+  const like = await LikeCollection.findOneAndDelete(searchQuery);
 
-//   console.log(like, searchQuery);
+  console.log(like, searchQuery);
 
-//   return like;
-// };
+  return like;
+};

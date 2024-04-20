@@ -3,17 +3,17 @@
 import { post, get } from "../utils/request";
 
 export const toggleLikePost = async (postId) => {
-  const response = await post(`/likes/${postId}`);
+  const response = await post(`/like/${postId}`);
   return response.data;
 };
 
 export const getLikes = async (postId) => {
-  const response = await get(`/likes/${postId}`);
+  const response = await get(`/like/${postId}`);
   return response.data;
 };
 
 export const getLikedUsersList = async (entityId) => {
-  const response = await get(`/likes/${entityId}`);
+  const response = await get(`/like/${entityId}`);
   return response.data;
 };
 

@@ -65,6 +65,7 @@ const PropertyPage = () => {
   }, [dispatch]);
 
   const { properties, loading, error } = useSelector((state) => state.property);
+  const { user } = useSelector((state) => state.user);
 
   const [activePropertyData, setActivePropertyData] = useState({});
   const [isPropertyFormVisible, setPropertyFormVisible] = useState(false);
@@ -122,14 +123,16 @@ const PropertyPage = () => {
             Properties
           </h1>
 
-          <Button
-            color="green"
-            className="my-4 flex justify-around items-center"
-            onClick={() => setPropertyFormVisible(true)}
-          >
-            <MdAssignmentAdd className="lg:mr-2 h-4 w-4" />
-            <span className="hidden lg:block">Add Property</span>
-          </Button>
+          {user.role === "secretory" ? (
+            <Button
+              color="green"
+              className="my-4 flex justify-around items-center"
+              onClick={() => setPropertyFormVisible(true)}
+            >
+              <MdAssignmentAdd className="lg:mr-2 h-4 w-4" />
+              <span className="hidden lg:block">Add Property</span>
+            </Button>
+          ) : null}
         </div>
 
         {/* filter */}
