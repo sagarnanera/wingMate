@@ -62,6 +62,11 @@ app.use(
   })
 );
 
+// setting proxy for production, to enable secure cookies
+if (node_env === "PROD") {
+  app.set("trust proxy", 1);
+}
+
 // heath check
 app.use(async (ctx, next) => {
   if (ctx.path === "/") {
