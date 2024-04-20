@@ -78,6 +78,7 @@ const SocietyRegisterCard = () => {
               label="Society Name"
               id="societyName"
               className="rounded-lg"
+              type="text"
               // placeholder="Enter society name"
               onChange={handleChange}
               required
@@ -104,6 +105,7 @@ const SocietyRegisterCard = () => {
             label="Location"
             id="location"
             className="rounded-lg"
+            type="text"
             // placeholder="Enter location"
             onChange={handleChange}
             required
@@ -123,6 +125,7 @@ const SocietyRegisterCard = () => {
               label="Secretory name"
               id="name"
               className="rounded-lg"
+              type="text"
               // placeholder="Enter secretary name"
               onChange={handleChange}
               required
@@ -135,6 +138,7 @@ const SocietyRegisterCard = () => {
               label="Secretory email"
               id="email"
               className="rounded-lg"
+              type="email"
               // placeholder="name@company.com"
               onChange={handleChange}
               required
@@ -147,6 +151,7 @@ const SocietyRegisterCard = () => {
               label="Password"
               id="password"
               className="rounded-lg"
+              type="password"
               // placeholder="••••••••"
               onChange={handleChange}
               required
@@ -159,6 +164,7 @@ const SocietyRegisterCard = () => {
               label="Contact number"
               id="contact"
               className="rounded-lg"
+              type="number"
               // placeholder="Enter contact number"
               onChange={handleChange}
               required

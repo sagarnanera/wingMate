@@ -194,7 +194,7 @@ const EventsPage = () => {
           </h1>
         </Card>
       ) : (
-        <div className="flex gap-2 flex-wrap justify-between mt-4">
+        <div className="flex gap-2 flex-wrap justify-around mt-4">
           {events.map((event) => (
             <EventCard
               key={event._id}

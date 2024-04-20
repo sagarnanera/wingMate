@@ -166,7 +166,7 @@ const PropertyPage = () => {
           </h1>
         </Card>
       ) : (
-        <div className="flex gap-2 flex-wrap justify-between mt-4">
+        <div className="flex gap-2 flex-wrap justify-around mt-4">
           {properties.map((property) => (
             <PropertyCard
               key={property._id}

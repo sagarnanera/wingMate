@@ -154,7 +154,7 @@ const WingsPage = () => {
           </h1>
         </Card>
       ) : (
-        <div className="flex gap-2 flex-wrap justify-between mt-4">
+        <div className="flex gap-2 flex-wrap justify-normal mt-4">
           {wings.map((wing) => (
             <WingCard
               key={wing._id}

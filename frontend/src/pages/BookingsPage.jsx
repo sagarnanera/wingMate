@@ -186,7 +186,7 @@ const BookingsPage = () => {
           </h1>
         </Card>
       ) : (
-        <div className="flex gap-2 flex-wrap justify-between mt-4">
+        <div className="flex gap-2 flex-wrap justify-around mt-4">
           {bookings.map((booking) => (
             <BookingCard
               key={booking._id}

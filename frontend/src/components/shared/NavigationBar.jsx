@@ -3,6 +3,7 @@ import {
   Avatar,
   Card,
   Dropdown,
+  FooterDivider,
   Navbar,
   NavbarCollapse,
   NavbarLink,
@@ -106,7 +107,7 @@ const NavigationBar = () => {
         }}
       >
         <NavLink to={"/"}>
-          {society?.logo ? (
+          {!society?.logo ? (
             <Sidebar.Logo
               title={society?.name}
               img="https://www.alt-er.com/wp-content/uploads/2021/11/gokuldham-logo.png"
@@ -126,11 +127,11 @@ const NavigationBar = () => {
             </Sidebar.Logo>
           ) : (
             <Card
-              className="h-12 mb-4 !p-0 text-xl font-semibold text-gray-900 dark:text-white"
+              className="h-16 mb-4 !p-0 text-xl font-semibold text-gray-900 dark:text-white"
               theme={{
                 root: {
-                  inner: "h-12",
-                  children: "h-12 p-2 flex justify-center items-center",
+                  inner: "h-16",
+                  children: "h-16 p-2 flex justify-center items-center",
                 },
               }}
             >
@@ -143,6 +144,8 @@ const NavigationBar = () => {
             </Card>
           )}
         </NavLink>
+
+        <FooterDivider />
 
         {sidebarItems && (
           <Sidebar.Items>

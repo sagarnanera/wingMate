@@ -97,8 +97,6 @@ exports.registerController = async (ctx) => {
 
   // const { _id, societyId } = verifyJWTToken(invitationToken);
 
-  console.log(_id, societyId);
-
   const hash = await hashPassword(userPass);
 
   const user = await updateUserData(
@@ -137,8 +135,6 @@ exports.registerController = async (ctx) => {
     );
     return;
   }
-
-  console.log("user after update :", user);
 
   const payload = {
     _id,

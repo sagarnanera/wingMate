@@ -4,6 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   events: [],
+  activeEvent: {},
   loading: false,
   error: null,
 };
@@ -12,11 +13,11 @@ const eventSlice = createSlice({
   name: "event",
   initialState,
   reducers: {
-    getEvent(state, action) {
+    setEvent(state, action) {
       state.events = action.payload;
       state.loading = false;
     },
-    getEvents(state, action) {
+    setEvents(state, action) {
       state.events = action.payload;
       state.loading = false;
     },
@@ -39,9 +40,10 @@ const eventSlice = createSlice({
       state.loading = false;
     });
     builder.addCase("getEvent/fulfilled", (state, action) => {
-      state.events = action.payload;
+      state.activeEvent = action.payload;
       state.loading = false;
     });
+
     builder.addCase("getEvents/pending", (state) => {
       state.loading = true;
     });
@@ -53,6 +55,7 @@ const eventSlice = createSlice({
       state.events = action.payload;
       state.loading = false;
     });
+
     builder.addCase("createEvent/pending", (state) => {
       state.loading = true;
     });
@@ -64,6 +67,7 @@ const eventSlice = createSlice({
       state.events.push(action.payload);
       state.loading = false;
     });
+
     builder.addCase("updateEvent/pending", (state) => {
       state.loading = true;
     });
@@ -77,6 +81,7 @@ const eventSlice = createSlice({
       );
       state.loading = false;
     });
+
     builder.addCase("deleteEvent/pending", (state) => {
       state.loading = true;
     });
@@ -90,6 +95,7 @@ const eventSlice = createSlice({
       );
       state.loading = false;
     });
+
     builder.addCase("changeEventStatus/pending", (state) => {
       state.loading = true;
     });
@@ -105,5 +111,8 @@ const eventSlice = createSlice({
     });
   },
 });
+
+export const { setEvent, setEvents, eventError, toggleEventStatus } =
+  eventSlice.actions;
 
 export default eventSlice.reducer;

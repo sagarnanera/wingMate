@@ -48,9 +48,9 @@ const WingForm = ({ initialData, handleClose, visible, source, onSubmit }) => {
             <FloatingLabel
               variant="outlined"
               label="Wing Area"
-              type="text"
+              type="number"
               name="area"
-              value={wingData.name}
+              value={wingData.area}
               onChange={handleChange}
               required
             />

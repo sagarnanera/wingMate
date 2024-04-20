@@ -24,6 +24,7 @@ const eventRouter = require("./routes/event.route");
 const postRouter = require("./routes/post.route");
 const commentRouter = require("./routes/comment.route");
 const likeRouter = require("./routes/like.route");
+const miscRouter = require("./routes/misc.route");
 
 const routes = [
   authRouter,
@@ -37,13 +38,13 @@ const routes = [
   postRouter,
   commentRouter,
   likeRouter,
+  miscRouter,
 ];
 
 // logger
 app.use(async (ctx, next) => {
   await next();
   const rt = ctx.response.get("X-Response-Time");
-  // console.log(`${ctx.method} ${ctx.url} - ${rt}`);
 
   console.log(
     `${new Date().toLocaleString()} - ${ctx.method} ${ctx.url} - ${

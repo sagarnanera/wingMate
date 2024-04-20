@@ -18,7 +18,7 @@ exports.findEvent = async (db, searchQuery) => {
 
   // const event = await EventCollection.findOne(searchQuery);
 
-  const event = await await BookingCollection.aggregate([
+  const event = await await EventCollection.aggregate([
     { $match: searchQuery },
     {
       $lookup: {
@@ -123,7 +123,7 @@ exports.updateEventData = async (db, searchQuery, dataToUpdate) => {
   const event = await EventCollection.findOneAndUpdate(
     searchQuery,
     {
-      $set: dataToUpdate
+      $set: dataToUpdate,
     },
     { returnDocument: "after" }
   );

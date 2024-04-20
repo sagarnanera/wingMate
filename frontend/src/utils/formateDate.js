@@ -4,6 +4,12 @@ export const formateDate = (date) => {
   const currentDate = new Date();
   const postDate = new Date(date);
 
+  // if it's future date then return the date in the format of month dd, yyyy
+
+  if (postDate > currentDate) {
+    return `${postDate.toDateString()}`;
+  }
+
   const diff = currentDate - postDate;
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);

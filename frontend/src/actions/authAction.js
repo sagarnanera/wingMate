@@ -20,6 +20,8 @@ export const loginAction = createAsyncThunk(
       const response = await login(data);
 
       if (!response.success || !response.user || !response.society) {
+        showToast(response.message || "something went wrong...", "error");
+
         return rejectWithValue(response.message);
       }
 

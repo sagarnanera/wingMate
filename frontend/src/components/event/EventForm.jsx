@@ -97,6 +97,7 @@ const EventForm = ({ initialData, visible, source, handleClose, onSubmit }) => {
           {/* properties should be multi select dropdown, only editable if we are creating event, not on editing */}
           <div className="my-4">
             <Select
+              placeholder="Select properties"
               options={eventData?.propertyIds}
               isMulti
               onChange={(selectedList) => {

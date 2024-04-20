@@ -45,7 +45,7 @@ const PostForm = ({ draggedFiles }) => {
         if (
           fileType === "image" &&
           newMedia.length < 10 &&
-          mediaType === "image"
+          (mediaType === "image" || mediaType === "")
         ) {
           newMedia.push(file);
           newMediaType = "image";
@@ -85,7 +85,7 @@ const PostForm = ({ draggedFiles }) => {
       if (
         fileType === "image" &&
         newMedia.length < 10 &&
-        mediaType === "image"
+        (mediaType === "image" || mediaType === "")
       ) {
         newMedia.push(file);
         newMediaType = "image";
@@ -237,11 +237,11 @@ const PostForm = ({ draggedFiles }) => {
         </div>
       </Card>
 
-      {editingImage && (
+      {/* {editingImage && (
         <div className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[80%] h-[80%] bg-black bg-opacity-30 flex justify-center items-center z-50">
           <ImageEditor imageUrl={editingImage} />
         </div>
-      )}
+      )} */}
     </>
   );
 };

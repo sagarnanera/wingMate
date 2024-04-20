@@ -5,6 +5,7 @@ import React from "react";
 import { Button, Card } from "flowbite-react";
 import { MdEventAvailable } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { formateDate } from "../../utils/formateDate";
 
 const EventCard = ({ eventData }) => {
   const navigate = useNavigate();
@@ -29,8 +30,8 @@ const EventCard = ({ eventData }) => {
               {property?.name}
             </p>
           ))}
-        <p className="text-gray-600 mb-2">Start Date: {eventData?.startDate}</p>
-        <p className="text-gray-600 mb-2">End Date: {eventData?.endDate}</p>
+        <p className="text-gray-600 mb-2">Start Date: {formateDate(eventData?.startDate)}</p>
+        <p className="text-gray-600 mb-2">End Date: {formateDate(eventData?.endDate)}</p>
       </div>
       {/* view more button, which will navigate to event details page */}
       <Button

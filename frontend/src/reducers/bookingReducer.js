@@ -43,6 +43,8 @@ const bookingSlice = createSlice({
       state.loading = false;
     });
     builder.addCase("getBooking/fulfilled", (state, action) => {
+
+      console.log("getBooking/fulfilled", action.payload);  
       state.activeBooking = action.payload;
       state.loading = false;
     });

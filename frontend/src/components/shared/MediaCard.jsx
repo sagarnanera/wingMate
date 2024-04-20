@@ -5,12 +5,12 @@ import { MdClose, MdModeEdit } from "react-icons/md";
 
 const MediaCard = ({ media, mediaType, alt, index, onRemove, onEdit }) => {
   return (
-    <div className="relative">
+    <div className="relative bg-gray-100 border border-blue-50 rounded-lg p-1">
       {mediaType === "image" ? (
         <img
           src={URL.createObjectURL(media)}
           alt={alt || "image post media"}
-          className="w-32 h-32 object-contain rounded-lg"
+          className="w-32 h-32 object-contain rounded-xl"
         />
       ) : mediaType === "video" ? (
         <video
@@ -27,7 +27,7 @@ const MediaCard = ({ media, mediaType, alt, index, onRemove, onEdit }) => {
         />
       ) : null}
       <button
-        className="absolute top-2 right-2 p-1 bg-transparent hover:bg-white rounded-full shadow-md"
+        className="absolute -top-1 right-1 p-1 bg-transparent hover:bg-white rounded-full shadow-md"
         onClick={() => onRemove(index)}
       >
         <MdClose size={20} />

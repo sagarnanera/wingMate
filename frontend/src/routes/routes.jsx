@@ -20,6 +20,7 @@ import BookingDetailsPage from "../pages/BookingDetailsPage";
 import SocietyDetailsPage from "../pages/SocietyDetailsPage";
 import EventsPage from "../pages/EventsPage";
 import ProfilePage from "../pages/ProfilePage";
+import EventDetailsPage from "../pages/EventDetailsPage";
 
 const Router = () => {
   return (
@@ -38,6 +39,7 @@ const Router = () => {
 
           {/* events routes */}
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/events/:eventId" element={<EventDetailsPage />} />
 
           {/* residents routes */}
           <Route path="/residents" element={<ResidentsPage />} />

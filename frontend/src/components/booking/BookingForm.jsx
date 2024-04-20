@@ -51,14 +51,14 @@ const BookingForm = ({
   return (
     <Modal show={visible} onClose={closeModal}>
       <Modal.Header>
-        {source === "edit" ? "Edit event details" : "Create event"}
+        {source === "edit" ? "Edit Booking details" : "Create Booking"}
       </Modal.Header>
       <Modal.Body>
         <div className="">
           <div className="my-4">
             <FloatingLabel
               variant="outlined"
-              label="event name"
+              label="Booking name"
               type="text"
               name="name"
               value={bookingData?.name}
@@ -72,13 +72,13 @@ const BookingForm = ({
               label="Description"
               type="text"
               name="description"
-              placeholder="event description ?"
+              placeholder="Description ?"
               value={bookingData?.description}
               onChange={handleChange}
               required
             />
           </div>
-          <div className="my-4">
+          {/* <div className="my-4">
             <FloatingLabel
               variant="outlined"
               label="Fees per person"
@@ -88,7 +88,7 @@ const BookingForm = ({
               onChange={handleChange}
               required
             />
-          </div>
+          </div> */}
 
           <div className="flex justify-center items-center gap-2">
             <DateRangePicker
@@ -103,6 +103,7 @@ const BookingForm = ({
           {/* properties should be multi select dropdown, only editable if we are creating event, not on editing */}
           <div className="my-4">
             <Select
+            placeholder="Select Properties"
               options={bookingData?.propertyIds}
               isMulti
               onChange={(selectedList) => {
