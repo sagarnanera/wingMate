@@ -64,7 +64,7 @@ app.use(
 
 // setting proxy for production, to enable secure cookies
 if (node_env === "PROD") {
-  app.set("trust proxy", 1);
+  app.proxy = true;
 }
 
 // heath check
