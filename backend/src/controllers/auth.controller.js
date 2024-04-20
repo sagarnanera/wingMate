@@ -12,9 +12,9 @@ exports.loginController = async (ctx) => {
   const { email, password } = ctx.request.body;
 
   // const user = await User.findOne({ email: email });
-  const user = await findUserWithPass(ctx.db, { email: email });
+  const { society, ...user } = await findUserWithPass(ctx.db, { email: email });
 
-  if (!user) {
+  if (!user || Object.keys(user).length === 0) {
     // ctx.status = 404;
     // ctx.body = { success: false, message: "User not found." };
 
@@ -46,7 +46,7 @@ exports.loginController = async (ctx) => {
   }
 
   const payload = {
-    _id: user._id
+    _id: user._id,
   };
 
   // Sign token
@@ -74,7 +74,7 @@ exports.loginController = async (ctx) => {
     true,
     "logged in successfully",
     200,
-    { user: userData, token },
+    { user: userData, token, society },
     "user logged in."
   );
 
@@ -88,7 +88,7 @@ exports.registerController = async (ctx) => {
     name,
     contact,
     _id,
-    societyId
+    societyId,
   } = ctx.request.body;
 
   // const { email, password, wingId, name, contact } = ctx.request.body;
@@ -96,8 +96,6 @@ exports.registerController = async (ctx) => {
   const { invitationToken } = ctx.query;
 
   // const { _id, societyId } = verifyJWTToken(invitationToken);
-
-  console.log(_id, societyId);
 
   const hash = await hashPassword(userPass);
 
@@ -112,11 +110,11 @@ exports.registerController = async (ctx) => {
         totalPost: 0,
         name,
         contact,
-        createdOn: new Date()
+        createdOn: new Date(),
       },
       $unset: {
-        invitationToken: 1
-      }
+        invitationToken: 1,
+      },
     }
   );
 
@@ -138,10 +136,8 @@ exports.registerController = async (ctx) => {
     return;
   }
 
-  console.log("user after update :", user);
-
   const payload = {
-    _id
+    _id,
   };
 
   const token = genJWTToken(payload);
@@ -194,8 +190,8 @@ exports.ForgotPass = async (ctx) => {
     {
       $set: {
         resetPasswordExpires,
-        resetPasswordToken
-      }
+        resetPasswordToken,
+      },
     }
   );
 
@@ -224,12 +220,12 @@ exports.ResetPass = async (ctx) => {
     { _id: user._id },
     {
       $set: {
-        password: newHash
+        password: newHash,
       },
       $unset: {
         resetPasswordExpires: 1,
-        resetPasswordToken: 1
-      }
+        resetPasswordToken: 1,
+      },
     }
   );
 

@@ -36,8 +36,6 @@ exports.createBooking = async (ctx) => {
     createdOn
   };
 
-  console.log("booking data in ctrl:", bookingData);
-
   const booking = await insertBooking(ctx.db, bookingData);
 
   if (!booking) {

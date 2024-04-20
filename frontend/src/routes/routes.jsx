@@ -19,6 +19,8 @@ import BookingsPage from "../pages/BookingsPage";
 import BookingDetailsPage from "../pages/BookingDetailsPage";
 import SocietyDetailsPage from "../pages/SocietyDetailsPage";
 import EventsPage from "../pages/EventsPage";
+import ProfilePage from "../pages/ProfilePage";
+import EventDetailsPage from "../pages/EventDetailsPage";
 
 const Router = () => {
   return (
@@ -29,18 +31,19 @@ const Router = () => {
         <Route path="/register" element={<ResidenceRegisterPage />} />
 
         <Route path="/" element={<PrivateRoutes component={NavigationBar} />}>
-          <Route path="" element={<Home />} />
-          <Route path="/feed" element={<SocietyFeed />} />
+          <Route index element={<Home />} />
+          <Route path="/wing-feed" element={<Home />} />
 
           {/* society routes */}
           <Route path="/society" element={<SocietyDetailsPage />} />
 
           {/* events routes */}
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/events/:eventId" element={<EventDetailsPage />} />
 
           {/* residents routes */}
           <Route path="/residents" element={<ResidentsPage />} />
-          <Route path="/residents/:userId" element={<ResidentProfile />} />
+          <Route path="/residents/:userId" element={<ProfilePage />} />
 
           {/* wings routes */}
           <Route path="/wings" element={<WingsPage />} />

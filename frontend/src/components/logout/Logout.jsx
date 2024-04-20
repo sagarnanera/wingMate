@@ -2,14 +2,28 @@
 
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { post } from "../../utils/request";
+import { useDispatch } from "react-redux";
+import { logoutAction } from "../../actions/authAction";
 
 const Logout = () => {
   const navigate = useNavigate();
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     localStorage.removeItem("token");
-    navigate("/login");
-  }, []);
+
+    // const logout = async (_) => await post("/auth/logout");
+
+    // logout();
+
+    dispatch(logoutAction());
+
+    // navigate("/login");
+  }, [dispatch]);
+
+  
 
   return (
     <div>

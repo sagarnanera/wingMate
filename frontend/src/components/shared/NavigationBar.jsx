@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Avatar,
   Card,
   Dropdown,
+  FooterDivider,
   Navbar,
   NavbarCollapse,
   NavbarLink,
   Sidebar,
   ToggleSwitch,
 } from "flowbite-react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   HiArrowSmRight,
   HiChartPie,
@@ -28,21 +29,33 @@ import {
   MdNaturePeople,
   MdOutlinePeople,
 } from "react-icons/md";
+import { useDispatch, useSelector } from "react-redux";
+import { logoutAction } from "../../actions/authAction";
 
-const NavigationBar = ({ societyLogo = true, societyName }) => {
+const NavigationBar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // to determine the active tab of the navigation
+  // const [activeTab, setActiveTab] = useState("Dashboard");
+
+  const dispatch = useDispatch();
+
+  const location = useLocation();
+
+  const { user } = useSelector((state) => state.user);
+  const { society } = useSelector((state) => state.society);
+
   const sidebarItems = [
-    {
-      title: "Dashboard",
-      icon: HiOutlineOfficeBuilding,
-      href: "#",
-    },
-    {
-      title: "Requests",
-      icon: HiViewBoards,
-      href: "/requests",
-    },
+    // {
+    //   title: "Dashboard",
+    //   icon: HiOutlineOfficeBuilding,
+    //   href: "#",
+    // },
+    // {
+    //   title: "Requests",
+    //   icon: HiViewBoards,
+    //   href: "/requests",
+    // },
     {
       title: "Wings",
       icon: HiInbox,
@@ -75,6 +88,18 @@ const NavigationBar = ({ societyLogo = true, societyName }) => {
     },
   ];
 
+  // const societyName =
+  //   "Gokuldham society fsadfdsafasdffdasnldsflkamdsfkasndflkmasflkm";
+  // const societyLogo = 0;
+
+  if (user?.role === "secretory") {
+    sidebarItems.push({
+      title: "Requests",
+      icon: HiViewBoards,
+      href: "/requests",
+    });
+  }
+
   return (
     <>
       <Sidebar
@@ -85,33 +110,61 @@ const NavigationBar = ({ societyLogo = true, societyName }) => {
         aria-label="Sidebar"
         theme={{
           root: {
-            inner:
-              "h-full overflow-y-auto overflow-x-hidden rounded bg-slate-350 px-3 py-4 dark:bg-gray-800",
+            inner: "h-full rounded bg-slate-350 px-3 py-4 dark:bg-gray-800",
           },
         }}
       >
         <NavLink to={"/"}>
-          {societyLogo ? (
+          {!society?.logo ? (
             <Sidebar.Logo
+              title={society?.name}
               img="https://www.alt-er.com/wp-content/uploads/2021/11/gokuldham-logo.png"
               imgAlt="society logo"
-              className="w-56 h-12 overflow-hidden text-ellipsis"
+              className="max-w-full h-12 text-nowrap overflow-hidden text-ellipsis"
+              theme={{
+                inner: "h-12",
+                img: "h-12",
+              }}
             >
-              {societyName || "Gokuldham society"}
+              <div
+                title={society?.name}
+                className="max-w-[60%] text-nowrap text-ellipsis overflow-hidden"
+              >
+                {society?.name}
+              </div>
             </Sidebar.Logo>
           ) : (
-            <Card className="mb-4 !p-0 text-xl font-semibold text-gray-900 dark:text-white">
-              Gokuldham society
+            <Card
+              className="h-16 mb-4 !p-0 text-xl font-semibold text-gray-900 dark:text-white"
+              theme={{
+                root: {
+                  inner: "h-16",
+                  children: "h-16 p-2 flex justify-center items-center",
+                },
+              }}
+            >
+              <div
+                title={society?.name}
+                className="max-w-full text-nowrap text-ellipsis overflow-hidden"
+              >
+                {society?.name}
+              </div>
             </Card>
           )}
         </NavLink>
+
+        <FooterDivider />
 
         {sidebarItems && (
           <Sidebar.Items>
             <Sidebar.ItemGroup>
               {sidebarItems.map((item, index) => (
                 <NavLink to={item.href} key={index}>
-                  <Sidebar.Item icon={item?.icon} className="p-4">
+                  <Sidebar.Item
+                    icon={item?.icon}
+                    className="p-4 mt-1"
+                    active={location.pathname.includes(item.href.toLowerCase())}
+                  >
                     {item.title}
                   </Sidebar.Item>
                 </NavLink>
@@ -143,19 +196,37 @@ const NavigationBar = ({ societyLogo = true, societyName }) => {
         </NavLink>
 
         <NavbarCollapse>
-          <Navbar.Link href="#" active>
+          <Navbar.Link
+            as={Link}
+            className="text-lg"
+            to="/"
+            active={location.pathname === "/"}
+          >
             Society-Feed
           </Navbar.Link>
-          <Navbar.Link href="#">Wing-Feed</Navbar.Link>
+          <Navbar.Link
+            as={Link}
+            className="text-lg"
+            to="/wing-feed"
+            active={location.pathname === "/wing-feed"}
+          >
+            Wing-Feed
+          </Navbar.Link>
         </NavbarCollapse>
 
         <div className="flex gap-2 justify-center items-center">
           <Avatar
             alt="User settings"
             img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+            // onError={
+            //   this.src = "https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+            // }
             rounded
           />
-          <NavLink to={"/logout"}>
+          {/* <NavLink to={"/logout"}>
+            <HiOutlineArrowCircleRight size={35} />
+          </NavLink> */}
+          <NavLink to={"javascript:;"} onClick={() => dispatch(logoutAction())}>
             <HiOutlineArrowCircleRight size={35} />
           </NavLink>
         </div>

@@ -21,7 +21,7 @@ exports.findUser = async (db, searchQuery) => {
   const UserCollection = db.collection("users");
 
   const user = await UserCollection.findOne(searchQuery, {
-    projection: { password: 0 }
+    projection: { password: 0 },
   });
 
   return user;
@@ -30,16 +30,34 @@ exports.findUser = async (db, searchQuery) => {
 exports.findUserWithPass = async (db, searchQuery) => {
   const UserCollection = db.collection("users");
 
-  const user = await UserCollection.findOne(searchQuery);
+  // const user = await UserCollection.findOne(searchQuery);
 
-  return user;
+  const user = await UserCollection.aggregate([
+    { $match: searchQuery },
+    {
+      $lookup: {
+        from: "societies",
+        localField: "societyId",
+        foreignField: "_id",
+        as: "society",
+      },
+    },
+    {
+      $unwind: {
+        path: "$society",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+  ]).toArray();
+
+  return user[0] || {};
 };
 
 exports.findUsers = async (db, searchQuery, skip, limit, sort) => {
   const UserCollection = db.collection("users");
 
   const users = await UserCollection.find(searchQuery, {
-    projection: { password: 0 }
+    projection: { password: 0 },
   })
     .skip(skip)
     .limit(limit)
@@ -56,7 +74,7 @@ exports.updateUserData = async (db, searchQuery, updateQuery) => {
 
   const user = await UserCollection.findOneAndUpdate(searchQuery, updateQuery, {
     returnDocument: "after",
-    projection: { password: 0 }
+    projection: { password: 0 },
   });
 
   return user;

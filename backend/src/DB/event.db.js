@@ -16,11 +16,45 @@ exports.insertEvent = async (db, eventData) => {
 exports.findEvent = async (db, searchQuery) => {
   const EventCollection = db.collection("events");
 
-  const event = await EventCollection.findOne(searchQuery);
+  // const event = await EventCollection.findOne(searchQuery);
+
+  const event = await await EventCollection.aggregate([
+    { $match: searchQuery },
+    {
+      $lookup: {
+        from: "users",
+        let: { userId: "$userId" },
+        // localField: "userId",
+        // foreignField: "_id",
+        pipeline: [
+          { $match: { $expr: { $eq: ["$$userId", "$_id"] } } },
+          { $project: { _id: 0, name: 1, role: 1 } },
+        ],
+        as: "user",
+      }, // will return array
+    },
+    {
+      $lookup: {
+        from: "properties",
+        // let: { propertyIds: "$propertyIds" },
+        localField: "propertyIds",
+        foreignField: "_id",
+        // pipeline: [
+        //   { $match: { $expr: { $eq: ["$$propertyIds", "$_id"] } } },
+        //   // { $match: { "$_id": { $in: ["$$propertyIds"] } } },
+        //   {
+        //     $project: { _id: 0, name: 1, area: 1, location: 1, rentPerDay: 1 },
+        //   },
+        // ],
+        as: "properties",
+      }, // will return array
+    },
+    { $unwind: "$user" },
+  ]).toArray();
 
   console.log(event);
 
-  return event;
+  return event[0];
 };
 
 /**
@@ -35,11 +69,48 @@ exports.findEvent = async (db, searchQuery) => {
 exports.findEvents = async (db, searchQuery, skip, limit, sort) => {
   const EventCollection = db.collection("events");
 
-  const events = await EventCollection.find(searchQuery)
-    .skip(skip)
-    .limit(limit)
-    .sort(sort)
-    .toArray();
+  // const events = await EventCollection.find(searchQuery)
+  //   .skip(skip)
+  //   .limit(limit)
+  //   .sort(sort)
+  //   .toArray();
+
+  const events = await EventCollection.aggregate([
+    { $match: searchQuery },
+    { $skip: skip },
+    { $limit: limit },
+    { $sort: sort },
+    {
+      $lookup: {
+        from: "users",
+        let: { userId: "$userId" },
+        // localField: "userId",
+        // foreignField: "_id",
+        pipeline: [
+          { $match: { $expr: { $eq: ["$$userId", "$_id"] } } },
+          { $project: { _id: 0, name: 1, role: 1 } },
+        ],
+        as: "user",
+      }, // will return array
+    },
+    {
+      $lookup: {
+        from: "properties",
+        // let: { propertyIds: "$propertyIds" },
+        localField: "propertyIds",
+        foreignField: "_id",
+        // pipeline: [
+        //   { $match: { $expr: { $eq: ["$$propertyIds", "$_id"] } } },
+        //   // { $match: { "$_id": { $in: ["$$propertyIds"] } } },
+        //   {
+        //     $project: { _id: 0, name: 1, area: 1, location: 1, rentPerDay: 1 },
+        //   },
+        // ],
+        as: "properties",
+      }, // will return array
+    },
+    { $unwind: "$user" },
+  ]).toArray();
 
   console.log(events);
 
@@ -52,7 +123,7 @@ exports.updateEventData = async (db, searchQuery, dataToUpdate) => {
   const event = await EventCollection.findOneAndUpdate(
     searchQuery,
     {
-      $set: dataToUpdate
+      $set: dataToUpdate,
     },
     { returnDocument: "after" }
   );

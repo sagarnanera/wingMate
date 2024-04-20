@@ -1,12 +1,24 @@
 import React, { useState } from "react";
 import { Button, Card, Checkbox, FloatingLabel } from "flowbite-react";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { loginAction } from "../../actions/authAction";
+import Loader from "../shared/Loader";
+import { showToast } from "../../utils/showToast";
 
 const LoginCard = () => {
+  const dispatch = useDispatch();
+
+  // const toast = useToast();
+
   const [userData, setUserData] = useState({
     email: "",
     password: "",
   });
+
+  // const { user } = useSelector((state) => state.user);
+
+  const { loading, error } = useSelector((state) => state.auth);
 
   const handleChange = (e) => {
     setUserData({
@@ -15,9 +27,14 @@ const LoginCard = () => {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login form submitted");
+  const handleSubmit = () => {
+    // validation
+    if (!userData.email || !userData.password) {
+      showToast("Please fill all fields", "error");
+      return;
+    }
+
+    dispatch(loginAction(userData));
   };
 
   return (
@@ -78,13 +95,14 @@ const LoginCard = () => {
           className="w-full rounded-lg text-sm px-5 py-2.5 text-center"
           variant="primary"
           onClick={handleSubmit}
+          disabled={loading}
         >
-          Sign in
+          {loading ? <Loader variant={"tiny"} size={"lg"} /> : "Sign in"}
         </Button>
         <p className="text-sm font-light text-gray-500 dark:text-gray-400">
           Don&apos;t have an account yet?{" "}
           <Link
-            to="/register"
+            to="/society-register"
             className="font-medium text-primary-600 hover:underline dark:text-primary-500"
           >
             Sign up

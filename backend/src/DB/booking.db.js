@@ -22,21 +22,21 @@ exports.isBooked = async (db, societyId, propertyIds, requestedDateRange) => {
     $or: [
       {
         startDate: { $lt: requestedDateRange.endDate },
-        endDate: { $gt: requestedDateRange.startDate }
+        endDate: { $gt: requestedDateRange.startDate },
       },
       {
         startDate: {
           $gte: requestedDateRange.startDate,
-          $lt: requestedDateRange.endDate
-        }
+          $lt: requestedDateRange.endDate,
+        },
       },
       {
         endDate: {
           $gt: requestedDateRange.startDate,
-          $lte: requestedDateRange.endDate
-        }
-      }
-    ]
+          $lte: requestedDateRange.endDate,
+        },
+      },
+    ],
   });
 
   // if (result) {
@@ -56,7 +56,7 @@ exports.unbookedProperties = async (db, societyId, requestedDateRange) => {
 
   const unbookedProperties = await PropertyCollection.aggregate([
     {
-      $match: { societyId }
+      $match: { societyId },
     },
     {
       $lookup: {
@@ -73,43 +73,43 @@ exports.unbookedProperties = async (db, societyId, requestedDateRange) => {
                       {
                         $and: [
                           { $lte: ["$startDate", requestedDateRange.endDate] },
-                          { $gte: ["$endDate", requestedDateRange.startDate] }
-                        ]
+                          { $gte: ["$endDate", requestedDateRange.startDate] },
+                        ],
                       },
                       {
                         $and: [
                           {
-                            $gte: ["$startDate", requestedDateRange.startDate]
+                            $gte: ["$startDate", requestedDateRange.startDate],
                           },
-                          { $lte: ["$startDate", requestedDateRange.endDate] }
-                        ]
+                          { $lte: ["$startDate", requestedDateRange.endDate] },
+                        ],
                       },
                       {
                         $and: [
                           { $gte: ["$endDate", requestedDateRange.startDate] },
-                          { $lte: ["$endDate", requestedDateRange.endDate] }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          }
+                          { $lte: ["$endDate", requestedDateRange.endDate] },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
         ],
-        as: "bookings"
-      }
+        as: "bookings",
+      },
     },
     {
       $match: {
-        bookings: { $eq: [] }
-      }
+        bookings: { $eq: [] },
+      },
     },
     {
       $project: {
-        bookings: 0
-      }
-    }
+        bookings: 0,
+      },
+    },
   ]).toArray();
   console.log(unbookedProperties);
 
@@ -128,11 +128,50 @@ exports.unbookedProperties = async (db, societyId, requestedDateRange) => {
 exports.findBookings = async (db, searchQuery, skip, limit, sort) => {
   const BookingCollection = db.collection("bookings");
 
-  const bookings = await BookingCollection.find(searchQuery)
-    .skip(skip)
-    .limit(limit)
-    .sort(sort)
-    .toArray();
+  // const bookings = await BookingCollection.find(searchQuery)
+  //   .skip(skip)
+  //   .limit(limit)
+  //   .sort(sort)
+  //   .toArray();
+
+  // get bookings along with user and properties from respective collections
+
+  const bookings = await BookingCollection.aggregate([
+    { $match: searchQuery },
+    { $skip: skip },
+    { $limit: limit },
+    { $sort: sort },
+    {
+      $lookup: {
+        from: "users",
+        let: { userId: "$userId" },
+        // localField: "userId",
+        // foreignField: "_id",
+        pipeline: [
+          { $match: { $expr: { $eq: ["$$userId", "$_id"] } } },
+          { $project: { _id: 0, name: 1, role: 1 } },
+        ],
+        as: "user",
+      }, // will return array
+    },
+    {
+      $lookup: {
+        from: "properties",
+        // let: { propertyIds: "$propertyIds" },
+        localField: "propertyIds",
+        foreignField: "_id",
+        // pipeline: [
+        //   { $match: { $expr: { $eq: ["$$propertyIds", "$_id"] } } },
+        //   // { $match: { "$_id": { $in: ["$$propertyIds"] } } },
+        //   {
+        //     $project: { _id: 0, name: 1, area: 1, location: 1, rentPerDay: 1 },
+        //   },
+        // ],
+        as: "properties",
+      }, // will return array
+    },
+    { $unwind: "$user" },
+  ]).toArray();
 
   return bookings;
 };
@@ -140,9 +179,43 @@ exports.findBookings = async (db, searchQuery, skip, limit, sort) => {
 exports.findBooking = async (db, searchQuery) => {
   const BookingCollection = db.collection("bookings");
 
-  const booking = await BookingCollection.findOne(searchQuery);
+  // const booking = await BookingCollection.findOne(searchQuery);
 
-  return booking;
+  const booking = await BookingCollection.aggregate([
+    { $match: searchQuery },
+    {
+      $lookup: {
+        from: "users",
+        let: { userId: "$userId" },
+        // localField: "userId",
+        // foreignField: "_id",
+        pipeline: [
+          { $match: { $expr: { $eq: ["$$userId", "$_id"] } } },
+          { $project: { _id: 0, name: 1, role: 1 } },
+        ],
+        as: "user",
+      }, // will return array
+    },
+    {
+      $lookup: {
+        from: "properties",
+        // let: { propertyIds: "$propertyIds" },
+        localField: "propertyIds",
+        foreignField: "_id",
+        // pipeline: [
+        //   { $match: { $expr: { $eq: ["$$propertyIds", "$_id"] } } },
+        //   // { $match: { "$_id": { $in: ["$$propertyIds"] } } },
+        //   {
+        //     $project: { _id: 0, name: 1, area: 1, location: 1, rentPerDay: 1 },
+        //   },
+        // ],
+        as: "properties",
+      }, // will return array
+    },
+    { $unwind: "$user" },
+  ]).toArray();
+
+  return booking[0];
 };
 
 /**
@@ -158,7 +231,7 @@ exports.updateBookingData = async (db, searchQuery, dataToUpdate) => {
   const booking = await BookingCollection.findOneAndUpdate(
     searchQuery,
     {
-      $set: dataToUpdate
+      $set: dataToUpdate,
     },
     { returnDocument: "after" }
   );

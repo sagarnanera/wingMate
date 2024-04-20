@@ -8,7 +8,7 @@ exports.locationValidator = (ctx) => {
     return { field: "location", message: "Location is required" };
   }
   location = location.trim();
-  const { error } = joi.string().min(5).max(30).required().validate(location);
+  const { error } = joi.string().min(5).max(100).required().validate(location);
   if (error) {
     return {
       field: "location",

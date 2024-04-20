@@ -6,36 +6,47 @@ import { MdAssignmentAdd, MdOutlineKeyboardBackspace } from "react-icons/md";
 
 import ResidentCard from "../components/residents/ResidentCard";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getResidentsAction } from "../actions/residentAction";
+import Loader from "../components/shared/Loader";
 
 const ResidentsPage = () => {
   const navigate = useNavigate();
 
-  const [residents, setResidents] = useState([
-    {
-      _id: "1",
-      name: "John Doe",
-      email: "johndoe@wingmate.com",
-      profilePic: "https://xsgames.co/randomusers/avatar.php?g=male",
-    },
-    {
-      _id: "2",
-      name: "Jane Doe",
-      email: "janedoe@wingmate.com",
-      profilePic: "https://xsgames.co/randomusers/avatar.php?g=female",
-    },
-    {
-      _id: "3",
-      name: "Alice",
-      email: "alice@wingmate.co",
-      profilePic: "https://xsgames.co/randomusers/avatar.php?g=female",
-    },
-    {
-      _id: "4",
-      name: "Bob",
-      email: "bob@wingmate.co",
-      profilePic: "https://xsgames.co/randomusers/avatar.php?g=male",
-    },
-  ]);
+  // const [residents, setResidents] = useState([
+  //   {
+  //     _id: "1",
+  //     name: "John Doe",
+  //     email: "johndoe@wingmate.com",
+  //     profilePic: "https://xsgames.co/randomusers/avatar.php?g=male",
+  //   },
+  //   {
+  //     _id: "2",
+  //     name: "Jane Doe",
+  //     email: "janedoe@wingmate.com",
+  //     profilePic: "https://xsgames.co/randomusers/avatar.php?g=female",
+  //   },
+  //   {
+  //     _id: "3",
+  //     name: "Alice",
+  //     email: "alice@wingmate.co",
+  //     profilePic: "https://xsgames.co/randomusers/avatar.php?g=female",
+  //   },
+  //   {
+  //     _id: "4",
+  //     name: "Bob",
+  //     email: "bob@wingmate.co",
+  //     profilePic: "https://xsgames.co/randomusers/avatar.php?g=male",
+  //   },
+  // ]);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getResidentsAction({}));
+  }, [dispatch]);
+
+  const { residents, error, loading } = useSelector((state) => state.resident);
 
   // TODO: implement debounce for the search filter
   const [searchFilter, setSearchFilter] = useState("");
@@ -52,11 +63,29 @@ const ResidentsPage = () => {
   //     fetchResidents();
   // }, []);
 
-  const handleResidentDelete = (residentId) => {
+  const handleResidentDelete = (residentId) => {};
 
+  if (loading) {
+    return (
+      <Card className="w-full h-full flex justify-center items-center p-4 mt-4">
+        <Loader size={"2xl"} />
+      </Card>
+    );
+  }
 
-
-  };
+  if (error) {
+    return (
+      <Card className="w-full flex justify-center items-center p-4 mt-4">
+        <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">
+          Error fetching bookings
+        </h1>
+        <Button className="" onClick={() => location.reload()}>
+          {" "}
+          Refresh page
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -122,7 +151,7 @@ const ResidentsPage = () => {
           </h1>
         </Card>
       ) : (
-        <div className="flex gap-2 flex-wrap justify-between mt-4">
+        <div className="flex gap-2 flex-wrap justify-around mt-4">
           {residents.map((resident) => (
             <ResidentCard
               key={resident._id}

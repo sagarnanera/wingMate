@@ -64,23 +64,17 @@ const ErrorHandler = (err, ctx) => {
   err.expose = true;
 
   if (err instanceof customError) {
-    console.log("custom error", err);
-
     responseHandler(ctx, false, err.message, err.statusCode, null, err);
     return;
   }
 
   if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-    console.log("invalid json error", err);
-
     responseHandler(ctx, false, "Invalid JSON payload", 400, null, err);
 
     return;
   }
 
   if (err instanceof MongoServerError) {
-    console.log("MONGO err", err);
-
     // insert bulk write error handlers
 
     if (err.code === 121) {
@@ -97,7 +91,6 @@ const ErrorHandler = (err, ctx) => {
   }
 
   if (err instanceof JsonWebTokenError || err instanceof TokenExpiredError) {
-    console.log("JWT err", err);
     responseHandler(
       ctx,
       false,
@@ -111,7 +104,7 @@ const ErrorHandler = (err, ctx) => {
   }
 
   const errStatus = err.statusCode || 500;
-  console.log("error status in error handler ", errStatus);
+  console.log("error status in error handler ", err);
 
   const errMsg = err.message || "Something went wrong";
 
@@ -125,5 +118,5 @@ module.exports = {
   notFoundHandler,
   ErrorHandler,
   invalidJsonHandler,
-  validationErrorHandler
+  validationErrorHandler,
 };

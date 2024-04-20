@@ -2,47 +2,53 @@ const ROLES = {
   SECRETORY: "secretory",
   WING_ADMIN: "wing admin",
   HOUSE_OWNER: "house owner",
-  RESIDENT: "resident"
+  RESIDENT: "resident",
 };
 
 const AllRoles = [
   ROLES.SECRETORY,
   ROLES.WING_ADMIN,
   ROLES.HOUSE_OWNER,
-  ROLES.RESIDENT
+  ROLES.RESIDENT,
 ];
 
 const EVENT_STATUS = {
   PENDING: "pending approval",
   APPROVED: "approved",
   REJECTED: "rejected",
-  FINISHED: "finished"
+  FINISHED: "finished",
 };
 
 const BOOKING_TYPE = {
   PERSONAL: "personal",
-  EVENT: "event"
+  EVENT: "event",
 };
 
 const POST_CONTENT_TYPE = {
   TEXT: "text",
   IMAGE: "image",
   VIDEO: "video",
-  GIF: "gif"
+  GIF: "gif",
 };
 const POST_TYPE = {
   NORMAL_POST: "normal post",
-  EVENT_POST: "event post"
+  EVENT_POST: "event post",
 };
 
 const FEED_TYPE = {
   SOCIETY: "society",
-  WING: "wing"
+  WING: "wing",
 };
 
 const PROPERTY_TYPE = FEED_TYPE;
 
 const HOST = process.env.HOST;
+
+const CLOUDINARY_CONFIG = {
+  CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  API_KEY: process.env.CLOUDINARY_API_KEY,
+  API_SECRET: process.env.CLOUDINARY_API_SECRET,
+};
 
 module.exports = {
   ROLES,
@@ -53,5 +59,6 @@ module.exports = {
   BOOKING_TYPE,
   PROPERTY_TYPE,
   HOST,
-  EVENT_STATUS
+  EVENT_STATUS,
+  CLOUDINARY_CONFIG,
 };

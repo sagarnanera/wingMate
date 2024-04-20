@@ -27,11 +27,27 @@ exports.findComment = async (db, searchQuery) => {
 exports.findComments = async (db, searchQuery, skip, limit, sort) => {
   const CommentCollection = db.collection("comments");
 
-  const comments = await CommentCollection.find(searchQuery)
-    .skip(skip)
-    .limit(limit)
-    .sort(sort)
-    .toArray();
+  // const comments = await CommentCollection.find(searchQuery)
+  //   .skip(skip)
+  //   .limit(limit)
+  //   .sort(sort)
+  //   .toArray();
+
+  const comments = await CommentCollection.aggregate([
+    { $match: searchQuery },
+    { $sort: sort },
+    { $skip: skip },
+    { $limit: limit },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    { $unwind: "$user" },
+  ]).toArray();
 
   console.log(comments);
 

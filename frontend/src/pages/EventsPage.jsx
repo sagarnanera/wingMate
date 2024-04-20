@@ -8,47 +8,60 @@ import EventCard from "../components/event/EventCard";
 import EventForm from "../components/event/EventForm";
 import { useNavigate } from "react-router-dom";
 import DateRangePicker from "../components/shared/DateRangePicker";
+import { useDispatch, useSelector } from "react-redux";
+import { getEventsAction } from "../actions/eventAction";
+import Loader from "../components/shared/Loader";
 
 const EventsPage = () => {
   const navigate = useNavigate();
-  const [events, setEvents] = useState([
-    {
-      _id: "1",
-      name: "event A",
-      description: "some description",
-      feesPerPerson: 1000,
-      propertyIds: ["1", "2"],
-      startDate: new Date("2021-10-01"),
-      endDate: new Date("2021-10-10"),
-    },
-    {
-      _id: "2",
-      name: "event B",
-      description: "some description",
-      feesPerPerson: 2000,
-      propertyIds: ["3", "4"],
-      startDate: new Date("2021-10-11"),
-      endDate: new Date("2021-10-20"),
-    },
-    {
-      _id: "3",
-      name: "event C",
-      description: "some description",
-      feesPerPerson: 3000,
-      propertyIds: ["1", "3"],
-      startDate: new Date("2021-10-21"),
-      endDate: new Date("2021-10-30"),
-    },
-    {
-      _id: "4",
-      name: "event D",
-      description: "some description",
-      feesPerPerson: 4000,
-      propertyIds: ["2", "4"],
-      startDate: new Date("2021-11-01"),
-      endDate: new Date("2021-11-10"),
-    },
-  ]);
+  // const [events, setEvents] = useState([
+  //   {
+  //     _id: "1",
+  //     name: "event A",
+  //     description: "some description",
+  //     feesPerPerson: 1000,
+  //     propertyIds: ["1", "2"],
+  //     startDate: new Date("2021-10-01"),
+  //     endDate: new Date("2021-10-10"),
+  //   },
+  //   {
+  //     _id: "2",
+  //     name: "event B",
+  //     description: "some description",
+  //     feesPerPerson: 2000,
+  //     propertyIds: ["3", "4"],
+  //     startDate: new Date("2021-10-11"),
+  //     endDate: new Date("2021-10-20"),
+  //   },
+  //   {
+  //     _id: "3",
+  //     name: "event C",
+  //     description: "some description",
+  //     feesPerPerson: 3000,
+  //     propertyIds: ["1", "3"],
+  //     startDate: new Date("2021-10-21"),
+  //     endDate: new Date("2021-10-30"),
+  //   },
+  //   {
+  //     _id: "4",
+  //     name: "event D",
+  //     description: "some description",
+  //     feesPerPerson: 4000,
+  //     propertyIds: ["2", "4"],
+  //     startDate: new Date("2021-11-01"),
+  //     endDate: new Date("2021-11-10"),
+  //   },
+  // ]);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getEventsAction({}));
+  }, [dispatch]);
+
+  const { events, loading, error } = useSelector((state) => state.event);
+
+  const [activeEventData, setActiveEventData] = useState({});
   const [isEventFormVisible, setEventFormVisible] = useState(false);
 
   const [dateFilter, setDateFilter] = useState({
@@ -80,12 +93,11 @@ const EventsPage = () => {
   // }, []);
 
   const handleCreateEvent = (eventData) => {
-    setEvents([...events, eventData]);
     setEventFormVisible(false);
   };
 
   const handleDeleteEvent = (eventId) => {
-    setEvents(events.filter((event) => event._id !== eventId));
+    // setEvents(events.filter((event) => event._id !== eventId));
   };
 
   const handleDateRangeChange = (date) => {
@@ -95,6 +107,28 @@ const EventsPage = () => {
       setDateFilter({ ...dateFilter, endDate: date.endDate });
     }
   };
+
+  if (loading) {
+    return (
+      <Card className="w-full h-full flex justify-center items-center p-4 mt-4">
+        <Loader size={"2xl"} />
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="w-full flex justify-center items-center p-4 mt-4">
+        <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">
+          Error fetching events
+        </h1>
+        <Button className="" onClick={() => location.reload()}>
+          {" "}
+          Refresh page
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -160,7 +194,7 @@ const EventsPage = () => {
           </h1>
         </Card>
       ) : (
-        <div className="flex gap-2 flex-wrap justify-between mt-4">
+        <div className="flex gap-2 flex-wrap justify-around mt-4">
           {events.map((event) => (
             <EventCard
               key={event._id}
@@ -173,8 +207,10 @@ const EventsPage = () => {
 
       {isEventFormVisible && (
         <EventForm
-          onCreate={handleCreateEvent}
-          onCancel={() => setEventFormVisible(false)}
+          initialData={activeEventData}
+          visible={isEventFormVisible}
+          handleClose={() => setEventFormVisible(false)}
+          onSubmit={(data) => handleCreateEvent(data)}
         />
       )}
     </>

@@ -3,11 +3,13 @@ const app = require("./src/app");
 const { connectDB } = require("./src/DB/db");
 
 const PORT = process.env.PORT || 8080;
+const HOST =
+  process.env.NODE_ENV === "PROD" ? undefined : process.env.HOST || "localhost";
 
 connectDB()
   .then((db) => {
     app.context.db = db;
-    app.listen(PORT, (err) => {
+    app.listen(PORT, HOST, (err) => {
       if (err) {
         console.log("Error occurred while starting the server..." + err);
         return;
