@@ -9,7 +9,7 @@ import { formateDate } from "../../utils/formateDate";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
-const CommentCard = ({ commentData }) => {
+const CommentCard = ({ commentData, isReply }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
 
@@ -29,7 +29,7 @@ const CommentCard = ({ commentData }) => {
 
   return (
     <>
-      <div className="flex items-start m-2 my-4">
+      <div className={`flex items-start m-2 my-4 ${isReply ? "ml-8" : ""}`}>
         <img
           loading="lazy"
           src="https://xsgames.co/randomusers/avatar.php?g=pixel"

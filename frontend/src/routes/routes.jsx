@@ -21,6 +21,7 @@ import SocietyDetailsPage from "../pages/SocietyDetailsPage";
 import EventsPage from "../pages/EventsPage";
 import ProfilePage from "../pages/ProfilePage";
 import EventDetailsPage from "../pages/EventDetailsPage";
+import PaymentPage from "../pages/PaymentPage";
 
 const Router = () => {
   return (
@@ -54,6 +55,9 @@ const Router = () => {
           {/* bookings routes */}
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/bookings/:bookingId" element={<BookingDetailsPage />} />
+
+          {/* payments route */}
+          <Route path="/payments" element={<PaymentPage />} />
 
           {/* logout route */}
           <Route path="/logout" element={<Logout />} />

@@ -67,7 +67,7 @@ const Engagement = ({ postData }) => {
     setIsSaved((prev) => !prev);
     // show success toast
 
-    showToast("Post saved successfully", "info");
+    showToast("Post saved successfully", "success");
 
     // TODO: Create APIs to save post and associate with the user
   };

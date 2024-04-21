@@ -28,12 +28,16 @@ import {
   MdBookOnline,
   MdNaturePeople,
   MdOutlinePeople,
+  MdNotifications,
+  MdPayments,
 } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutAction } from "../../actions/authAction";
+import NotificationPanel from "../notification/NotifiactionPanel";
 
 const NavigationBar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   // to determine the active tab of the navigation
   // const [activeTab, setActiveTab] = useState("Dashboard");
@@ -86,6 +90,16 @@ const NavigationBar = () => {
       icon: MdNaturePeople,
       href: "/properties",
     },
+    {
+      title: "Payments",
+      icon: MdPayments,
+      href: "/payments",
+    },
+    // {
+    //   title: "Settings",
+    //   icon: HiTable,
+    //   href: "/settings",
+    // },
   ];
 
   // const societyName =
@@ -99,6 +113,10 @@ const NavigationBar = () => {
       href: "/requests",
     });
   }
+
+  const toggleNotificationPanel = () => {
+    setIsNotificationOpen((prev) => !prev);
+  };
 
   return (
     <>
@@ -190,7 +208,7 @@ const NavigationBar = () => {
             alt="wingMate logo"
             className="w-12 h-10"
           />
-          <span className="ml-2 font-semibold text-2xl text-gray-900 dark:text-whites">
+          <span className="ml-2 font-semibold text-2xl text-gray-900 dark:text-whites hidden sm:inline-block">
             wingMate
           </span>
         </NavLink>
@@ -215,6 +233,24 @@ const NavigationBar = () => {
         </NavbarCollapse>
 
         <div className="flex gap-2 justify-center items-center">
+          {/* theme toggle switch */}
+          {/* <ToggleSwitch
+            id="theme-switch"
+            className="mr-4"
+            aria-label="Theme switch"
+            onChange={() => { 
+              document.documentElement.classList.toggle("dark");
+            }}
+          />  */}
+
+          {/* notification panel */}
+          <NavLink
+            to={"javascript:;"}
+            onClick={() => toggleNotificationPanel()}
+          >
+            <MdNotifications size={35} />
+          </NavLink>
+
           <Avatar
             alt="User settings"
             img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
@@ -232,6 +268,24 @@ const NavigationBar = () => {
         </div>
       </Navbar>
 
+      {isNotificationOpen && (
+        <Sidebar
+          id="notification-sidebar"
+          className={`fixed top-0 right-0 pt-4 w-96 z-20 h-screen transition-transform bg-slate-300 border-r border-gray-200 sm:translate-x-0 shadow-lg ${
+            isNotificationOpen ? "" : "translate-x-full"
+          }`}
+          aria-label="Notification Sidebar"
+          theme={{
+            root: {
+              inner: "h-full rounded bg-slate-350 dark:bg-gray-800",
+            },
+          }}
+        >
+          {/* NotificationPanel component */}
+          <NotificationPanel handleClose={toggleNotificationPanel} />
+        </Sidebar>
+      )}
+
       <div className="sm:ml-64 p-4 mt-16 bg-slate-100 min-h-[calc(100vh-4rem)]">
         <Outlet />
       </div>
@@ -240,32 +294,3 @@ const NavigationBar = () => {
 };
 
 export default NavigationBar;
-
-{
-  /* <div className="flex md:order-2 ">
-          <Dropdown
-            arrowIcon={false}
-            inline
-            label={
-              <Avatar
-                alt="User settings"
-                img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-                rounded
-              />
-            }
-          >
-            <Dropdown.Header>
-              <span className="block text-sm">Sk Nanera</span>
-              <span className="block truncate text-sm font-medium">
-                sk@wingmate.home
-              </span>
-            </Dropdown.Header>
-            <Dropdown.Item>Dashboard</Dropdown.Item>
-            <Dropdown.Item>Settings</Dropdown.Item>
-            <Dropdown.Item>Earnings</Dropdown.Item>
-            <Dropdown.Divider />
-            <Dropdown.Item>Sign out</Dropdown.Item>
-          </Dropdown>
-          <Navbar.Toggle />
-        </div> */
-}
