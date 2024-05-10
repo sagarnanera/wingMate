@@ -43,6 +43,7 @@ const FEED_TYPE = {
 const PROPERTY_TYPE = FEED_TYPE;
 
 const HOST = process.env.HOST;
+const FRONTEND_HOST = process.env.FRONTEND_URL;
 
 const CLOUDINARY_CONFIG = {
   CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
@@ -67,4 +68,5 @@ module.exports = {
   EVENT_STATUS,
   CLOUDINARY_CONFIG,
   MAIL_CONFIG,
+  FRONTEND_HOST,
 };

@@ -8,7 +8,7 @@ const {
 const { insertUser, insertUsers } = require("../DB/user.db");
 const { genJWTToken } = require("../services/jwt.service");
 const { hashPassword } = require("../services/password.service");
-const { ROLES, HOST } = require("../utils/constants");
+const { ROLES, HOST, FRONTEND_HOST } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 const { responseHandler } = require("../handlers/response.handler");
 const sendMail = require("../services/mail.service");
@@ -133,7 +133,7 @@ exports.addResidents = async (ctx) => {
     });
 
     invitationLinks.push(
-      `${HOST}/api/v1/auth/register?invitationToken=${invitationToken}`
+      `${FRONTEND_HOST}/register?invitationToken=${invitationToken}`
     );
   });
 
