@@ -2,13 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import { Button, Card, Label, TextInput } from "flowbite-react";
-import { MdAssignmentAdd, MdOutlineKeyboardBackspace } from "react-icons/md";
+import { MdOutlineKeyboardBackspace } from "react-icons/md";
+import { HiUserAdd } from "react-icons/hi";
 
 import ResidentCard from "../components/residents/ResidentCard";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getResidentsAction } from "../actions/residentAction";
+import {
+  createResidentsAction,
+  getResidentsAction,
+} from "../actions/residentAction";
 import Loader from "../components/shared/Loader";
+import ResidentsForm from "../components/residents/ResidentForm";
 
 const ResidentsPage = () => {
   const navigate = useNavigate();
@@ -47,23 +52,20 @@ const ResidentsPage = () => {
   }, [dispatch]);
 
   const { residents, error, loading } = useSelector((state) => state.resident);
+  const { user } = useSelector((state) => state.user);
+
+  const [isResidentsFormVisible, setResidentsFormVisible] = useState(false);
 
   // TODO: implement debounce for the search filter
   const [searchFilter, setSearchFilter] = useState("");
 
   // TODO : Fetch residents from the backend
 
-  // useEffect(() => {
-  //     const fetchResidents = async () => {
-  //         const response = await fetch("/api/residents");
-  //         const data = await response.json();
-  //         setResidents(data);
-  //     };
-
-  //     fetchResidents();
-  // }, []);
-
   const handleResidentDelete = (residentId) => {};
+
+  const handleAddResidents = (data) => {
+    dispatch(createResidentsAction(data));
+  };
 
   if (loading) {
     return (
@@ -77,7 +79,7 @@ const ResidentsPage = () => {
     return (
       <Card className="w-full flex justify-center items-center p-4 mt-4">
         <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">
-          Error fetching bookings
+          Error fetching Residents
         </h1>
         <Button className="" onClick={() => location.reload()}>
           {" "}
@@ -103,18 +105,20 @@ const ResidentsPage = () => {
             <span className="hidden lg:block">Back</span>
           </Button>
 
-          <h1 className="text-3xl font-semibold text-gray-800 my-4 justify-center text-center">
+          <h1 className="text-3xl font-semibold text-gray-800 my-4 justify-center text-center flex-grow -ml-16">
             Residents
           </h1>
 
-          <Button
-            color="green"
-            className="my-4 flex justify-around items-center"
-            // onClick={() => setPropertyFormVisible(true)}
-          >
-            <MdAssignmentAdd className="lg:mr-2 h-4 w-4" />
-            <span className="hidden lg:block">Add Resident</span>
-          </Button>
+          {user.role === "secretory" ? (
+            <Button
+              color="green"
+              className="my-4 flex justify-around items-center"
+              onClick={() => setResidentsFormVisible(true)}
+            >
+              <HiUserAdd className="lg:mr-2 h-4 w-4" />
+              <span className="hidden lg:block">Add Residents</span>
+            </Button>
+          ) : null}
         </div>
 
         {/* filter */}
@@ -133,13 +137,6 @@ const ResidentsPage = () => {
               onChange={(e) => setSearchFilter(e.target.value)}
             />
           </div>
-
-          {/* <div className="flex justify-center items-center gap-2 w-full lg:w-[calc(50%-3rem)]">
-            <DateRangePicker
-              dateRange={dateFilter}
-              handleDateChange={handleDateRangeChange}
-            />
-          </div> */}
         </div>
       </Card>
 
@@ -160,6 +157,14 @@ const ResidentsPage = () => {
             />
           ))}
         </div>
+      )}
+
+      {isResidentsFormVisible && (
+        <ResidentsForm
+          visible={isResidentsFormVisible}
+          handleClose={() => setResidentsFormVisible(false)}
+          onSubmit={(data) => handleAddResidents(data)}
+        />
       )}
     </>
   );

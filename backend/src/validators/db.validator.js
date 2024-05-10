@@ -5,7 +5,7 @@ const { findLike } = require("../DB/like.db");
 const { findPost } = require("../DB/post.db");
 const { findProperties } = require("../DB/property.db");
 const { findSociety } = require("../DB/society.db");
-const { findUser } = require("../DB/user.db");
+const { findUser, findUsers } = require("../DB/user.db");
 const { findWing } = require("../DB/wing.db");
 const { customError } = require("../handlers/error.handler");
 const { FEED_TYPE, BOOKING_TYPE } = require("../utils/constants");
@@ -23,13 +23,31 @@ exports.isEmailExistValidator = async (ctx) => {
 exports.isEmailExistBulkValidator = async (ctx) => {
   const { residents } = ctx.request.body;
 
+  // residents = [email1, email2, email3, ...]
+
   // TODO : validate residents email if it already exist
+  const result = await findUsers(
+    ctx.db,
+    { email: { $in: residents } },
+    0,
+    0,
+    {
+      createdOn: -1,
+    },
+    { _id: 0, email: 1 }
+  );
 
-  // const result = await findUser(ctx.db, { email });
+  // result = [{email: email1}, {email: email2}, ...]
+  // convert it to [email1, email2, ...]
 
-  // if (result) {
-  //   return { message: "User with this email already exist!! " };
-  // }
+  if (result && result.length) {
+    const existingEmails = result.map((resident) => resident.email);
+    throw new customError(
+      "One or more residents with this email already exist!! ",
+      400,
+      { existingEmails }
+    );
+  }
 
   return null;
 };
@@ -39,7 +57,7 @@ exports.resetLinkValidator = async (ctx) => {
 
   const user = await findUser(ctx.db, {
     resetPasswordToken: token,
-    resetPasswordExpires: { $gt: new Date() }
+    resetPasswordExpires: { $gt: new Date() },
   });
 
   if (!user) {
@@ -71,7 +89,7 @@ exports.societyExistValidator = async (ctx) => {
   const { societyId } = ctx.request.user;
 
   const result = await findSociety(ctx.db, {
-    _id: societyId
+    _id: societyId,
   });
 
   if (!result) {
@@ -263,7 +281,7 @@ exports.propertiesExistValidator = async (ctx) => {
 
   if (propertyIds) {
     const results = await findProperties(ctx.db, searchQuery, 0, 0, {
-      createdOn: -1
+      createdOn: -1,
     });
 
     if (!results || results.length !== propertyIds.length) {

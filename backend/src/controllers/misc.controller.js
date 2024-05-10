@@ -145,3 +145,12 @@ exports.mediaUpload = async (ctx) => {
     "Invalid phase."
   );
 };
+
+// get all wings controller
+exports.getAllWings = async (ctx) => {
+  // const { societyId } = ctx.request.query;
+
+  return responseHandler(ctx, true, "Wings fetched successfully.", 200, {
+    wings,
+  });
+};

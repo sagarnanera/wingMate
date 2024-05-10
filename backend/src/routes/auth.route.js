@@ -23,6 +23,7 @@ const {
   isUserValidValidator,
   isEmailExistValidator,
   wingExistValidator,
+  societyExistValidator,
 } = require("../validators/db.validator");
 const { invitationTokenValidator } = require("../validators/society.validator");
 const router = new KoaRouter({ prefix: "/api/v1/auth" });
@@ -36,7 +37,7 @@ router.post(
     wingIdValidator,
     invitationTokenValidator,
   ]),
-  dbValidate([wingExistValidator]),
+  dbValidate([societyExistValidator, wingExistValidator]),
   registerController
 );
 router.post("/logout", authenticate(AllRoles), logoutController);

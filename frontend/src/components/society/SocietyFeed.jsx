@@ -31,7 +31,7 @@ const SocietyFeed = () => {
   const { posts, error, loading } = useSelector((state) => state.post);
 
   if (loading) {
-    console.log("loading")
+    console.log("loading");
     return (
       <Card className="w-full h-full flex justify-center items-center p-4 mt-4">
         <Loader size={"2xl"} />
@@ -43,7 +43,7 @@ const SocietyFeed = () => {
     return (
       <Card className="w-full flex justify-center items-center p-4 mt-4">
         <h1 className="text-2xl font-semibold text-gray-800 my-4 justify-center text-center">
-          Error fetching bookings
+          Error fetching Posts
         </h1>
         <Button className="" onClick={() => window.location.reload()}>
           {" "}

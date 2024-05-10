@@ -4,9 +4,10 @@ const { responseHandler } = require("./response.handler");
 
 // custom error
 class customError extends Error {
-  constructor(message, statusCode) {
+  constructor(message, statusCode, errData) {
     super(message);
     this.statusCode = statusCode || 500;
+    this.errData = errData;
   }
 }
 
@@ -64,7 +65,7 @@ const ErrorHandler = (err, ctx) => {
   err.expose = true;
 
   if (err instanceof customError) {
-    responseHandler(ctx, false, err.message, err.statusCode, null, err);
+    responseHandler(ctx, false, err.message, err.statusCode, err.errData, err);
     return;
   }
 

@@ -72,10 +72,12 @@ const PostForm = ({ draggedFiles }) => {
       setMedia(newMedia);
       setMediaType(newMediaType);
     }
-  }, [draggedFiles]);
+  }, [draggedFiles, media, mediaType]);
 
   const handleMediaUpload = (e) => {
     let error = "";
+
+    console.log(e.target.files[0]);
 
     const files = Array.from(e.target.files);
     const newMedia = [...media];

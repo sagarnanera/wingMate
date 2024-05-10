@@ -18,7 +18,7 @@ export const createResident = async (data) => {
 };
 
 export const createResidents = async (data) => {
-  const response = await post(`/residents/bulk`, data);
+  const response = await post(`/society/residents`, data);
   return response.data;
 };
 
@@ -29,5 +29,10 @@ export const updateResident = async (id, data) => {
 
 export const deleteResident = async (id) => {
   const response = await deleteReq(`/residents/${id}`);
+  return response.data;
+};
+
+export const resendInvitation = async (id) => {
+  const response = await post(`/residents/${id}/resend-invitation`);
   return response.data;
 };

@@ -50,6 +50,11 @@ const CLOUDINARY_CONFIG = {
   API_SECRET: process.env.CLOUDINARY_API_SECRET,
 };
 
+const MAIL_CONFIG = {
+  USER: process.env.MAILER,
+  PASS: process.env.MAILER_PASS,
+};
+
 module.exports = {
   ROLES,
   AllRoles,
@@ -61,4 +66,5 @@ module.exports = {
   HOST,
   EVENT_STATUS,
   CLOUDINARY_CONFIG,
+  MAIL_CONFIG,
 };

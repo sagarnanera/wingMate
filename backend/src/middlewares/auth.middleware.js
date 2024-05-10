@@ -4,7 +4,15 @@ const { findUser } = require("../DB/user.db");
 
 const authenticate = (authenticatedRoles) => {
   return async (ctx, next) => {
-    const token = ctx.cookies.get("token");
+    let token = ctx.cookies.get("token");
+
+    if (
+      ctx.request.url.includes("/wing") &&
+      ctx.request.method === "GET" &&
+      ctx.request.header.authorization
+    ) {
+      token = ctx.request.header.authorization;
+    }
 
     if (!token) {
       throw new customError("Not Authorized. Token not found !!!", 401);

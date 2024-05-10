@@ -20,7 +20,10 @@ export const loginAction = createAsyncThunk(
       const response = await login(data);
 
       if (!response.success || !response.user || !response.society) {
-        showToast(response.message || "something went wrong...", "error");
+        showToast(
+          `${response.message} \n ${response.err.map((e) => e.message)}`,
+          "error"
+        );
 
         return rejectWithValue(response.message);
       }
@@ -44,7 +47,7 @@ export const registerAction = createAsyncThunk(
 
       if (!response.success || !response.user) {
         showToast(
-          `${response.message} \n ${response.err.map((e) => "\n" + e.message)}`,
+          `${response.message} \n ${response.err.map((e) => e.message)}`,
           "error"
         );
         return rejectWithValue(response.message);
@@ -53,6 +56,7 @@ export const registerAction = createAsyncThunk(
       showToast("Registration Successful!", "success");
 
       dispatch(setUser(response.user));
+      dispatch(setSociety(response.society));
 
       return response;
     } catch (error) {
@@ -69,7 +73,7 @@ export const societyRegisterAction = createAsyncThunk(
 
       if (!response.success || !response.user || !response.society) {
         showToast(
-          `${response.message} \n ${response.err.map((e) => "\n" + e.message)}`,
+          `${response.message} \n ${response.err.map((e) => e.message)}`,
           "error"
         );
         return rejectWithValue(response.message);

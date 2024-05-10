@@ -14,33 +14,6 @@ import Loader from "../components/shared/Loader";
 const WingsPage = () => {
   const navigate = useNavigate();
 
-  // const [wings, setWings] = useState([
-  //   {
-  //     _id: "1",
-  //     name: "wing A",
-  //     area: 8000,
-  //     location: "somewhere outside society",
-  //   },
-  //   {
-  //     _id: "2",
-  //     name: "wing B",
-  //     area: 9000,
-  //     location: "somewhere inside society",
-  //   },
-  //   {
-  //     _id: "3",
-  //     name: "wing C",
-  //     area: 10000,
-  //     location: "somewhere inside society",
-  //   },
-  //   {
-  //     _id: "4",
-  //     name: "wing D",
-  //     area: 11000,
-  //     location: "somewhere outside society",
-  //   },
-  // ]);
-
   const dispatch = useDispatch();
 
   const [isWingFormVisible, setWingFormVisible] = useState(false);
@@ -49,16 +22,11 @@ const WingsPage = () => {
   // TODO: implement debounce for the search filter
   const [searchFilter, setSearchFilter] = useState("");
 
-  // {
-  //     "name":"wing A",
-  //     "area":8000,
-  //     "location":"somewhere outside society"
-  //   }
-
   useEffect(() => {
     dispatch(getWingsAction({}));
   }, [dispatch]);
 
+  const { user } = useSelector((state) => state.user);
   const { wings, loading, error } = useSelector((state) => state.wing);
 
   const handleWingDelete = (wingId) => {};
@@ -106,18 +74,20 @@ const WingsPage = () => {
             <span className="hidden lg:block">Back</span>
           </Button>
 
-          <h1 className="text-3xl font-semibold text-gray-800 my-4 justify-center text-center">
+          <h1 className="text-3xl font-semibold text-gray-800 my-4 justify-center text-center flex-grow -ml-16">
             wings
           </h1>
 
-          <Button
-            color="green"
-            className="my-4 flex justify-around items-center"
-            onClick={() => setWingFormVisible(true)}
-          >
-            <MdAssignmentAdd className="lg:mr-2 h-4 w-4" />
-            <span className="hidden lg:block">Add Wing</span>
-          </Button>
+          {user.role === "secretory" ? (
+            <Button
+              color="green"
+              className="my-4 flex justify-around items-center"
+              onClick={() => setWingFormVisible(true)}
+            >
+              <MdAssignmentAdd className="lg:mr-2 h-4 w-4" />
+              <span className="hidden lg:block">Add Wings</span>
+            </Button>
+          ) : null}
         </div>
 
         {/* filter */}

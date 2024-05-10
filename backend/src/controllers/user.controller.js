@@ -1,4 +1,4 @@
-const { updateUserData, findUsers } = require("../DB/user.db");
+const { updateUserData, findUsers, deleteUserData } = require("../DB/user.db");
 const { responseHandler } = require("../handlers/response.handler");
 const { hashPassword } = require("../services/password.service");
 const { ROLES } = require("../utils/constants");
@@ -158,7 +158,7 @@ exports.updateUser = async (ctx) => {
 exports.deleteUser = async (ctx) => {
   const { _id } = ctx.request.user;
 
-  const user = await deleteUser(ctx.db, { _id });
+  const user = await deleteUserData(ctx.db, { _id });
   if (!user) {
     responseHandler(
       ctx,

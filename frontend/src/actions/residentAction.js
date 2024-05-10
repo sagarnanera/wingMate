@@ -9,7 +9,9 @@ import {
   getResident,
   updateResident,
   createResidents,
+  resendInvitation,
 } from "../api/residentAPI";
+import { showToast } from "../utils/showToast";
 
 export const getResidentsAction = createAsyncThunk(
   "getResidents",
@@ -75,8 +77,17 @@ export const createResidentsAction = createAsyncThunk(
       const response = await createResidents(data);
 
       if (!response.success) {
+        // format the existing emails to show in the toast message
+        const existingEmails = response.existingEmails.join(", ");
+        showToast(`${response.message} \n ${existingEmails}`, "error");
+
         return rejectWithValue(response.message);
       }
+
+      showToast(
+        response.message || "Residents added successfully!!!",
+        "success"
+      );
 
       return response.residents || response.users;
     } catch (error) {
@@ -113,6 +124,23 @@ export const deleteResidentAction = createAsyncThunk(
       }
 
       return residentId;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const resendInvitationAction = createAsyncThunk(
+  "resendInvitation",
+  async (residentId, { rejectWithValue }) => {
+    try {
+      const response = await resendInvitation(residentId);
+
+      if (!response.success) {
+        return rejectWithValue(response.message);
+      }
+
+      return response.resident || response.user;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }

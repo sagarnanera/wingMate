@@ -34,6 +34,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { logoutAction } from "../../actions/authAction";
 import NotificationPanel from "../notification/NotifiactionPanel";
+import Loader from "./Loader";
 
 const NavigationBar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,7 +48,7 @@ const NavigationBar = () => {
   const location = useLocation();
 
   const { user } = useSelector((state) => state.user);
-  const { society } = useSelector((state) => state.society);
+  const { society, loading } = useSelector((state) => state.society);
 
   const sidebarItems = [
     // {
@@ -118,6 +119,14 @@ const NavigationBar = () => {
     setIsNotificationOpen((prev) => !prev);
   };
 
+  if (loading) {
+    return (
+      <Card className="w-full h-full flex justify-center items-center p-4 mt-4">
+        <Loader size={"2xl"} />
+      </Card>
+    );
+  }
+
   return (
     <>
       <Sidebar
@@ -146,7 +155,7 @@ const NavigationBar = () => {
             >
               <div
                 title={society?.name}
-                className="max-w-[60%] text-nowrap text-ellipsis overflow-hidden"
+                className="max-w-[90%] text-nowrap text-ellipsis overflow-hidden"
               >
                 {society?.name}
               </div>

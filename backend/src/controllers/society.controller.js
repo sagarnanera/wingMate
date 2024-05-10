@@ -3,14 +3,16 @@ const {
   insertSociety,
   findSociety,
   deleteSocietyData,
-  updateSocietyData
+  updateSocietyData,
 } = require("../DB/society.db");
 const { insertUser, insertUsers } = require("../DB/user.db");
 const { genJWTToken } = require("../services/jwt.service");
 const { hashPassword } = require("../services/password.service");
-const { ROLES } = require("../utils/constants");
+const { ROLES, HOST } = require("../utils/constants");
 const generateUUID = require("../utils/generateUUID");
 const { responseHandler } = require("../handlers/response.handler");
+const sendMail = require("../services/mail.service");
+const cookieOptions = require("../config/cookie.config");
 
 exports.societyRegistration = async (ctx) => {
   const { societyName, location, area, email, name, password, contact } =
@@ -29,7 +31,7 @@ exports.societyRegistration = async (ctx) => {
     societyId: _id,
     totalPost: 0,
     contact,
-    role: ROLES.SECRETORY
+    role: ROLES.SECRETORY,
   });
 
   const society = insertSociety(ctx.db, {
@@ -40,16 +42,18 @@ exports.societyRegistration = async (ctx) => {
     secretoryId,
     totalHouse: 0,
     totalWings: 0,
-    totalProperties: 0
+    totalProperties: 0,
   });
 
   await Promise.all([secretory, society]);
 
   const payload = {
-    _id: secretoryId
+    _id: secretoryId,
   };
 
   const token = genJWTToken(payload);
+
+  ctx.cookies.set("token", token, cookieOptions);
 
   responseHandler(
     ctx,
@@ -62,16 +66,17 @@ exports.societyRegistration = async (ctx) => {
         email,
         contact,
         societyId: _id,
+        role: ROLES.SECRETORY,
         _id: secretoryId,
-        token
+        token,
       },
       society: {
         _id,
-        societyName,
+        name: societyName,
         location,
         area,
-        secretoryId
-      }
+        secretoryId,
+      },
     },
     "Society registered : "
   );
@@ -114,27 +119,34 @@ exports.addResidents = async (ctx) => {
   const userData = [];
 
   residents.forEach((email) => {
-    console.log("user in bulk list", email);
-
     const _id = generateUUID();
     const invitationToken = genJWTToken({
       societyId,
-      _id: _id
+      _id: _id,
     });
 
     userData.push({
       email,
       _id,
       societyId,
-      invitationToken: invitationToken
+      invitationToken: invitationToken,
     });
 
     invitationLinks.push(
-      `http://localhost:8080/api/v1/auth/register?invitationToken=${invitationToken}`
+      `${HOST}/api/v1/auth/register?invitationToken=${invitationToken}`
     );
   });
 
   await insertUsers(ctx.db, userData);
+  // send mail to residents //TODO: this is not the correct way to send mail, use a queue system
+  userData.forEach((user) => {
+    sendMail(
+      user.email,
+      "Invitation to join society",
+      "Please click on the below link to register",
+      `Please click on the below link to register <a href="${invitationLinks}">Register</a>`
+    );
+  });
 
   responseHandler(
     ctx,
@@ -191,7 +203,7 @@ exports.deleteSociety = async (ctx) => {
 
   const society = await deleteSocietyData(ctx.db, {
     _id: societyId,
-    secretoryId: _id
+    secretoryId: _id,
   });
 
   if (!society) {

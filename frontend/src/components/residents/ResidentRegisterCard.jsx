@@ -3,10 +3,16 @@
 import React, { useEffect, useState } from "react";
 import { Card, Button, Select, FloatingLabel, Checkbox } from "flowbite-react";
 import { Link } from "react-router-dom";
+import { API_URL } from "../../utils/constants";
+import { showToast } from "../../utils/showToast";
+import { useDispatch } from "react-redux";
+import { registerAction } from "../../actions/authAction";
 
 const ResidenceRegisterCard = ({ token }) => {
   // it will take the token from the parent and store it in the token variable and send it to the backend when user submits the form, before that it will fetch the wing details from the backend and display it in the dropdown using token
   const [wings, setWings] = useState([]); // to store the wing details fetched from the backend
+
+  const dispatch = useDispatch();
 
   const [userData, setUserData] = useState({
     name: "",
@@ -17,19 +23,29 @@ const ResidenceRegisterCard = ({ token }) => {
   });
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/wing", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
+    const fetchWings = async () => {
+      try {
+        const response = await fetch(`${API_URL}/wing`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message);
+        }
+
         setWings(data);
-      });
-  }, []);
+      } catch (err) {
+        showToast(err.message || "Something went wrong", "error");
+      }
+    };
+
+    fetchWings();
+  }, [token]);
 
   const handleChange = (e) => {
     setUserData({
@@ -40,18 +56,18 @@ const ResidenceRegisterCard = ({ token }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch("http://localhost:5000/api/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(userData),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-      });
+
+    if (
+      !userData.name ||
+      !userData.wing ||
+      !userData.contact ||
+      !userData.password ||
+      !userData.flatNumber
+    ) {
+      return showToast("Please fill all the fields", "error");
+    }
+
+    dispatch(registerAction(userData));
   };
 
   return (
@@ -81,11 +97,12 @@ const ResidenceRegisterCard = ({ token }) => {
             required
           >
             <option value="">Select Wing</option>
-            {wings.map((wing) => (
-              <option key={wing._id} value={wing._id}>
-                {wing.name}
-              </option>
-            ))}
+            {wings.length &&
+              wings.map((wing) => (
+                <option key={wing._id} value={wing._id}>
+                  {wing.name}
+                </option>
+              ))}
           </Select>
         </div>
 

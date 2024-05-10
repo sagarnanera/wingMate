@@ -15,7 +15,7 @@ exports.responseHandler = (
   resData,
   logMessage
 ) => {
-  // console.log(logMessage, resData);
+  console.dir({ logMessage, resData }, { depth: null });
   ctx.status = resStatus || 500;
   ctx.body = { success: success, message: resMessage, ...resData };
 };

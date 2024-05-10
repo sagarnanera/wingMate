@@ -53,11 +53,11 @@ exports.findUserWithPass = async (db, searchQuery) => {
   return user[0] || {};
 };
 
-exports.findUsers = async (db, searchQuery, skip, limit, sort) => {
+exports.findUsers = async (db, searchQuery, skip, limit, sort, projection) => {
   const UserCollection = db.collection("users");
 
   const users = await UserCollection.find(searchQuery, {
-    projection: { password: 0 },
+    projection: projection || { password: 0 },
   })
     .skip(skip)
     .limit(limit)

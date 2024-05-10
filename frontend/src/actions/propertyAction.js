@@ -9,6 +9,7 @@ import {
   getProperty,
   updateProperty,
 } from "../api/propertyAPI";
+import { showToast } from "../utils/showToast";
 
 export const getPropertiesAction = createAsyncThunk(
   "getProperties",
@@ -57,6 +58,11 @@ export const createPropertyAction = createAsyncThunk(
       const response = await createProperty(data);
 
       if (!response.success) {
+        showToast(
+          `${response.message} \n ${response.err.map((e) => e.message)}`,
+          "error"
+        );
+
         return rejectWithValue(response.message);
       }
 

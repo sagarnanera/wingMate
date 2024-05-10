@@ -9,11 +9,11 @@ import PropTypes from "prop-types";
 const PrivateRoutes = ({ component: Component, ...rest }) => {
   const { user } = useSelector((state) => state.user);
   const location = useLocation();
+  console.log("user in private routes", user);
   if (user) {
-    console.log("here");
+    console.log("user in private routes if", user);
     return <Component {...rest} />;
   }
-  console.log("flandsfklasdlfnad");
   return <Navigate to="/login" state={location.pathname} />;
 };
 

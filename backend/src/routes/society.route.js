@@ -48,7 +48,7 @@ router.post(
   "/residents",
   authenticate([ROLES.SECRETORY]),
   staticValidate([residentsValidator]),
-  dbValidate([societyExistValidator, isEmailExistBulkValidator]),
+  dbValidate([societyExistValidator, isEmailExistBulkValidator, ]),
   addResidents
 );
 router.get(

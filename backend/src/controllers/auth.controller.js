@@ -1,3 +1,4 @@
+const { findSociety } = require("../DB/society.db");
 const { updateUserData, findUserWithPass } = require("../DB/user.db");
 const cookieOptions = require("../config/cookie.config");
 const { customError } = require("../handlers/error.handler");
@@ -140,24 +141,18 @@ exports.registerController = async (ctx) => {
     _id,
   };
 
+  const society = await findSociety(ctx.db, { _id: societyId });
+
   const token = genJWTToken(payload);
 
   ctx.cookies.set("token", token, cookieOptions);
-
-  // ctx.status = 200;
-  // ctx.body = {
-  //   success: true,
-  //   message: "Registered in successfully",
-  //   user,
-  //   token: token
-  // };
 
   responseHandler(
     ctx,
     true,
     "Registered in successfully",
     200,
-    { user, token },
+    { user, token, society },
     "user registered."
   );
 

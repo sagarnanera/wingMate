@@ -9,18 +9,6 @@ import Loader from "../shared/Loader";
 const SocietyRegisterCard = () => {
   const dispatch = useDispatch();
 
-  /*
-  {
-    "societyName":"Gokuldham society 123",
-    "location":"somewhere in mumbai   ",
-    "area":20000,
-    "name":"bhide master",
-    "password":"bhindi123",
-    "email":"sk@gmail.com",
-    "contact":"1234567890"
-  }
-  */
-
   const [societyData, setSocietyData] = useState({
     societyName: "",
     area: 0,
@@ -41,8 +29,6 @@ const SocietyRegisterCard = () => {
   };
 
   const handleSubmit = () => {
-    console.log(societyData);
-
     // validation
     if (
       !societyData.societyName ||
