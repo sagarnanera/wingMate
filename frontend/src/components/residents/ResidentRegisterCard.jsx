@@ -16,7 +16,7 @@ const ResidenceRegisterCard = ({ token }) => {
 
   const [userData, setUserData] = useState({
     name: "",
-    wing: "",
+    wingId: "",
     contact: "",
     password: "",
     flatNumber: "",
@@ -38,7 +38,7 @@ const ResidenceRegisterCard = ({ token }) => {
           throw new Error(data.message);
         }
 
-        setWings(data);
+        setWings(data.wings);
       } catch (err) {
         showToast(err.message || "Something went wrong", "error");
       }
@@ -59,7 +59,7 @@ const ResidenceRegisterCard = ({ token }) => {
 
     if (
       !userData.name ||
-      !userData.wing ||
+      !userData.wingId ||
       !userData.contact ||
       !userData.password ||
       !userData.flatNumber
@@ -67,7 +67,7 @@ const ResidenceRegisterCard = ({ token }) => {
       return showToast("Please fill all the fields", "error");
     }
 
-    dispatch(registerAction(userData));
+    dispatch(registerAction({ ...userData, token }));
   };
 
   return (
@@ -93,6 +93,7 @@ const ResidenceRegisterCard = ({ token }) => {
           <Select
             id="wing"
             className="rounded-lg"
+            name="wingId"
             onChange={handleChange}
             required
           >

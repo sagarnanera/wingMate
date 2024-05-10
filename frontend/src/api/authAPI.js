@@ -9,7 +9,12 @@ export const login = async (data) => {
 };
 
 export const register = async (data) => {
-  const response = await post(`/auth/register`, data);
+  const token = data.token;
+  delete data.token;
+  const response = await post(
+    `/auth/register?invitationToken=${token || ""}`,
+    data
+  );
   return response.data;
 };
 
